@@ -1,0 +1,22 @@
+--- dovecot/dovecot-example.conf.orig	Tue Jul  8 15:05:39 2003
++++ dovecot/dovecot-example.conf	Tue Jul  8 15:14:56 2003
+@@ -33,8 +33,8 @@
+ # dropping root privileges, so keep the key file unreadable by anyone but
+ # root. Included doc/mkcert.sh can be used to easily generate self-signed
+ # certificate, just make sure to update the domains in dovecot-openssl.cnf
+-#ssl_cert_file = /etc/ssl/certs/dovecot.pem
+-#ssl_key_file = /etc/ssl/private/dovecot.pem
++ssl_cert_file = /var/lib/openssl/certs/imap.pem
++ssl_key_file = /var/lib/openssl/certs/imap.pem
+ 
+ # SSL parameter file. Master process generates this file for login processes.
+ # It contains Diffie Hellman and RSA parameters.
+@@ -86,7 +86,7 @@
+ # User to use for the login process. Create a completely new user for this,
+ # and don't use it anywhere else. The user must also belong to a group where
+ # only it has access, it's used to control access for authentication process.
+-#login_user = dovecot
++login_user = nobody
+ 
+ # Set max. process size in megabytes. If you don't use
+ # login_process_per_connection you might need to grow this.
