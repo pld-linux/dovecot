@@ -35,7 +35,6 @@ case "$1" in
 		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dovecot
 	else
 		msg_already_running "Dovecot"
-		exit 1
 	fi
 	;;
   stop)
@@ -47,7 +46,7 @@ case "$1" in
 		msg_not_running "Dovecot"
 	fi
 	;;
-  restart)
+  restart|force-reload)
 	$0 stop
 	$0 start
 	exit $?
