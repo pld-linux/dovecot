@@ -1,4 +1,5 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
+Summary(pl):	Serwer IMAP i POP3 pisany g³ównie z my¶l± o bezpieczeñstwie
 Name:		dovecot
 Version:	0.99.10
 Release:	0.1
@@ -7,6 +8,9 @@ Group:		Networking/Daemons
 Source0:	http://dovecot.procontrol.fi/%{name}-%{version}.tar.gz
 # Source0-md5:	26d8452366a28418cc8a114781a721b6
 URL:		http://dovecot.procontrol.fi/
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -36,10 +40,43 @@ Status:
  - complete TLS/SSL support, using either GNUTLS or OpenSSL
  - IPv6 ready
  - shared mailboxes aren't yet supported
- - Maildir++ quota isn't yet supported. Hard filesystem quota can also
-   be problematic.
+ - Maildir++ quota isn't yet supported; hard filesystem quota can also
+   be problematic
  - mbox support isn't yet perfect - there's a few more or less
    theoretical problems, but nothing too bad.
+
+%description -l pl
+Dovecot to serwer IMAP i POP3 dla systemów linuksowych/uniksowych,
+pisany g³ównie z my¶l± o bezpieczeñstwie. Chocia¿ jest pisany w C,
+u¿ywa kilku technik kodowania zapobiegaj±cych wiêkszo¶ci popularnych
+pu³apek.
+
+Dovecot mo¿e dzia³aæ ze standardowymi formatami mbox i maildir, jest
+ca³kowicie kompatybilny z serwerami UW-IMAP i Courier IMAP, a tak¿e z
+klientami pocztowymi bezpo¶rednio dostaj±cymi siê do skrzynek.
+Planowana jest tak¿e obs³uga przechowywania listów w bazach SQL.
+
+Dovecot jest ³atwy do skonfigurowania i nie wymaga specjalnego
+nadzoru. Wystarczy tylko doprowadziæ do dzia³ania uwierzytelnianie -
+je¶li u¿ytkownicy s± w /etc/passwd, to w³a¶ciwie nie trzeba nic
+zmieniaæ.
+
+Dovecot powinien byæ w miarê szybki, g³ównie z powodu plików
+indeksowych utrzymywanych przez serwer; zamiast potrzeby skanowania
+wszystkich danych w skrzynce, Dovecot mo¿e ma³ym kosztem uzyskaæ
+wiêkszo¶æ potrzebnych informacji z indeksu.
+
+Stan:
+ - powinien byæ gotowy do u¿ycia ze zwyk³ymi klientami IMAP
+ - pe³na obs³uga IMAP4rev1
+ - obs³uga rozszerzeñ THREAD i SORT, wymaganych przez wiele webmaili
+   IMAP
+ - obs³uga IPv6
+ - jeszcze nie ma wspó³dzielonych skrzynek
+ - quota Maildir++ jeszcze nie jest obs³ugiwana; twarda quota na
+   systemach plików mo¿e sprawiaæ problemy
+ - obs³uga mboksów jeszcze nie jest idealna - jest jeszcze kilka
+   mniej lub bardziej teoretycznych problemów, ale nic strasznego.
 
 %prep
 %setup -q
