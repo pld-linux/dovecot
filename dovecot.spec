@@ -54,16 +54,16 @@ mailbox, Dovecot can get most of the wanted information from index
 with little effort.
 
 Status:
- - should be quite ready for use with normal IMAP clients
- - complete IMAP4rev1 support
- - supports THREAD and SORT extensions, required by many IMAP webmails
- - complete TLS/SSL support, using either GNUTLS or OpenSSL
- - IPv6 ready
- - shared mailboxes aren't yet supported
- - Maildir++ quota isn't yet supported; hard filesystem quota can also
-   be problematic
- - mbox support isn't yet perfect - there's a few more or less
-   theoretical problems, but nothing too bad.
+- should be quite ready for use with normal IMAP clients
+- complete IMAP4rev1 support
+- supports THREAD and SORT extensions, required by many IMAP webmails
+- complete TLS/SSL support, using either GNUTLS or OpenSSL
+- IPv6 ready
+- shared mailboxes aren't yet supported
+- Maildir++ quota isn't yet supported; hard filesystem quota can also
+  be problematic
+- mbox support isn't yet perfect - there's a few more or less
+  theoretical problems, but nothing too bad.
 
 %description -l pl
 Dovecot to serwer IMAP i POP3 dla systemów linuksowych/uniksowych,
@@ -87,16 +87,16 @@ wszystkich danych w skrzynce, Dovecot mo¿e ma³ym kosztem uzyskaæ
 wiêkszo¶æ potrzebnych informacji z indeksu.
 
 Stan:
- - powinien byæ gotowy do u¿ycia ze zwyk³ymi klientami IMAP
- - pe³na obs³uga IMAP4rev1
- - obs³uga rozszerzeñ THREAD i SORT, wymaganych przez wiele webmaili
-   IMAP
- - obs³uga IPv6
- - jeszcze nie ma wspó³dzielonych skrzynek
- - quota Maildir++ jeszcze nie jest obs³ugiwana; twarda quota na
-   systemach plików mo¿e sprawiaæ problemy
- - obs³uga mboksów jeszcze nie jest idealna - jest jeszcze kilka mniej
-   lub bardziej teoretycznych problemów, ale nic strasznego.
+- powinien byæ gotowy do u¿ycia ze zwyk³ymi klientami IMAP
+- pe³na obs³uga IMAP4rev1
+- obs³uga rozszerzeñ THREAD i SORT, wymaganych przez wiele webmaili
+  IMAP
+- obs³uga IPv6
+- jeszcze nie ma wspó³dzielonych skrzynek
+- quota Maildir++ jeszcze nie jest obs³ugiwana; twarda quota na
+  systemach plików mo¿e sprawiaæ problemy
+- obs³uga mboksów jeszcze nie jest idealna - jest jeszcze kilka mniej
+  lub bardziej teoretycznych problemów, ale nic strasznego.
 
 %prep
 %setup -q
