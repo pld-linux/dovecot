@@ -160,9 +160,9 @@ fi
 # COPYING contains some notes, not actual LGPL text
 %doc AUTHORS COPYING ChangeLog NEWS README TODO doc/*.txt doc/*.c*f
 %attr(755,root,root) %{_sbindir}/%{name}
-%config(noreplace) %verify(not size mtime md5) /etc/%{name}.conf
-%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/pam.d/%{name}
-%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/security/blacklist.imap
-%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/%{name}
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/%{name}
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.imap
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{name}
 %attr(754,root,root) /etc/rc.d/init.d/%{name}
 %attr(755,root,root) %{_libdir}/%{name}
