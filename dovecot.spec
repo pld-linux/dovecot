@@ -27,6 +27,7 @@ BuildRequires:	openssl-devel
 BuildRequires:	pam-devel
 %{!?_without_pgsql:BuildRequires:	postgresql-devel}
 Requires(post,preun):	/sbin/chkconfig
+Requires:	pam >= 0.77.3
 Provides:	imapdaemon
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
