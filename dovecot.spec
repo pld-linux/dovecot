@@ -1,3 +1,9 @@
+#
+# Conditional build:
+# _without_ldap		- without LDAP auth
+# _without_pgsql	- without PostgreSQL auth
+# _without_sasl		- without SASL auth
+#
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl):	Serwer IMAP i POP3 pisany g³ównie z my¶l± o bezpieczeñstwie
 Name:		dovecot
@@ -10,7 +16,12 @@ Source0:	http://dovecot.procontrol.fi/%{name}-%{version}.tar.gz
 URL:		http://dovecot.procontrol.fi/
 BuildRequires:	autoconf
 BuildRequires:	automake
+%{!?_without_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
 BuildRequires:	libtool
+%{!?_without_ldap:BuildRequires:	openldap-devel}
+BuildRequires:	openssl-devel
+BuildRequires:	pam-devel
+%{!?_without_pgsql:BuildRequires:	postgresql-devel}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -87,7 +98,13 @@ Stan:
 %{__autoconf}
 %{__autoheader}
 %{__automake}
-%configure
+%configure \
+	%{?debug:--enable-debug} \
+	%{!?_without_ldap:--with-ldap} \
+	%{!?_without_pgsql:--with-pgsql} \
+	%{!?_without_sasl:--with-cyrus-sasl2} \
+	--with-ssl=openssl \
+	--with-ssl-dir=/var/lib/openssl
 
 %{__make}
 
