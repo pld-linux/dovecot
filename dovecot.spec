@@ -1,8 +1,9 @@
 #
 # Conditional build:
-# _without_ldap		- without LDAP auth
-# _without_pgsql	- without PostgreSQL auth
-# _without_sasl		- without SASL auth
+%bcond_without	ldap	# without LDAP auth
+%bcond_without	mysql	# without MySQL auth
+%bcond_without	pgsql	# without PostgreSQL auth
+%bcond_without	sasl	# without SASL auth
 #
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl):	Serwer IMAP i POP3 pisany g³ównie z my¶l± o bezpieczeñstwie
@@ -20,14 +21,15 @@ Patch0:		%{name}-config.patch
 URL:		http://dovecot.procontrol.fi/
 BuildRequires:	autoconf
 BuildRequires:	automake
-%{!?_without_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
+%{?with_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
 BuildRequires:	gettext-devel
 BuildRequires:	libtool
-%{!?_without_ldap:BuildRequires:	openldap-devel}
+%{?with_mysql:BuildRequires:	mysql-devel}
+%{?with_ldap:BuildRequires:	openldap-devel}
 BuildRequires:	openssl-devel >= 0.9.7d
 BuildRequires:	pam-devel
 BuildRequires:	pkgconfig
-%{!?_without_pgsql:BuildRequires:	postgresql-devel}
+%{?with_pgsql:BuildRequires:	postgresql-devel}
 Requires(post,preun):	/sbin/chkconfig
 Requires:	pam >= 0.77.3
 Provides:	imapdaemon
@@ -110,9 +112,10 @@ Stan:
 %{__automake}
 %configure \
 	%{?debug:--enable-debug} \
-	%{!?_without_ldap:--with-ldap} \
-	%{!?_without_pgsql:--with-pgsql} \
-	%{!?_without_sasl:--with-cyrus-sasl2} \
+	%{?with_ldap:--with-ldap} \
+	%{?with_mysql:--with-mysql} \
+	%{?with_pgsql:--with-pgsql} \
+	%{?with_sasl:--with-cyrus-sasl2} \
 	--with-ssl=openssl \
 	--with-ssl-dir=/var/lib/openssl
 
