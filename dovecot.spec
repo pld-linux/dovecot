@@ -8,11 +8,15 @@ Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl):	Serwer IMAP i POP3 pisany g³ównie z my¶l± o bezpieczeñstwie
 Name:		dovecot
 Version:	0.99.10
-Release:	0.1
+Release:	1
 License:	LGPL v2.1
 Group:		Networking/Daemons
 Source0:	http://dovecot.procontrol.fi/%{name}-%{version}.tar.gz
 # Source0-md5:	26d8452366a28418cc8a114781a721b6
+Source1:	%{name}.pamd
+Source2:	%{name}.init
+Source3:	%{name}.sysconfig
+Patch0:		%{name}-config.patch
 URL:		http://dovecot.procontrol.fi/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -22,6 +26,8 @@ BuildRequires:	libtool
 BuildRequires:	openssl-devel
 BuildRequires:	pam-devel
 %{!?_without_pgsql:BuildRequires:	postgresql-devel}
+Requires(post,preun):	/sbin/chkconfig
+Provides:	imapdaemon
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -41,8 +47,8 @@ your users are in /etc/passwd there's hardly anything you have to do.
 
 Dovecot should be pretty fast, mostly because of index files that
 Dovecot maintains; instead of having to scan through all the data in
-mailbox, Dovecot can get most of the wanted information from index with
-little effort.
+mailbox, Dovecot can get most of the wanted information from index
+with little effort.
 
 Status:
  - should be quite ready for use with normal IMAP clients
@@ -86,11 +92,12 @@ Stan:
  - jeszcze nie ma wspó³dzielonych skrzynek
  - quota Maildir++ jeszcze nie jest obs³ugiwana; twarda quota na
    systemach plików mo¿e sprawiaæ problemy
- - obs³uga mboksów jeszcze nie jest idealna - jest jeszcze kilka
-   mniej lub bardziej teoretycznych problemów, ale nic strasznego.
+ - obs³uga mboksów jeszcze nie jest idealna - jest jeszcze kilka mniej
+   lub bardziej teoretycznych problemów, ale nic strasznego.
 
 %prep
 %setup -q
+%patch0 -p1
 
 %build
 %{__libtoolize}
@@ -110,19 +117,46 @@ Stan:
 
 %install
 rm -rf $RPM_BUILD_ROOT
+install -d $RPM_BUILD_ROOT/etc/{pam.d,rc.d/init.d,sysconfig,security}
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
 mv -f $RPM_BUILD_ROOT%{_sysconfdir}/{dovecot-example.conf,dovecot.conf}
 
+install %{SOURCE1} $RPM_BUILD_ROOT/etc/pam.d/%{name}
+install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
+install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
+
+touch $RPM_BUILD_ROOT/etc/security/blacklist.imap
+
 %clean
 rm -rf $RPM_BUILD_ROOT
+
+%post
+/sbin/chkconfig --add dovecot
+if [ -f /var/lock/subsys/dovecot ]; then
+	/etc/rc.d/init.d/dovecot restart >&2
+else
+	echo "Run \"/etc/rc.d/init.d/dovecot start\" to start dovecot daemon."
+fi
+
+%preun
+if [ "$1" = "0" ]; then
+	if [ -f /var/lock/subsys/dovecot ]; then
+		/etc/rc.d/init.d/dovecot stop >&2
+	fi
+	/sbin/chkconfig --del dovecot
+fi
 
 %files
 %defattr(644,root,root,755)
 # COPYING contains some notes, not actual LGPL text
 %doc AUTHORS COPYING ChangeLog NEWS README TODO doc/*.txt doc/*.c*f
-%attr(755,root,root) %{_sbindir}/dovecot
-%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/dovecot.conf
-%attr(755,root,root) %{_libdir}/dovecot
+%attr(755,root,root) %{_sbindir}/%{name}
+%config(noreplace) %verify(not size mtime md5) /etc/%{name}.conf
+%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/pam.d/%{name}
+%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/security/blacklist.imap
+%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/%{name}
+%attr(754,root,root) /etc/rc.d/init.d/%{name}
+%attr(755,root,root) %{_libdir}/%{name}
