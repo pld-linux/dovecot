@@ -23,7 +23,7 @@ BuildRequires:	automake
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
 BuildRequires:	libtool
 %{!?_without_ldap:BuildRequires:	openldap-devel}
-BuildRequires:	openssl-devel
+BuildRequires:	openssl-devel >= 0.9.7d
 BuildRequires:	pam-devel
 %{!?_without_pgsql:BuildRequires:	postgresql-devel}
 Requires(post,preun):	/sbin/chkconfig
