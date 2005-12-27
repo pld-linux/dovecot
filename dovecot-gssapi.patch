@@ -1,0 +1,12 @@
+diff -ur dovecot-1.0.alpha5-o/src/auth/mech-gssapi.c dovecot-1.0.alpha5/src/auth/mech-gssapi.c
+--- dovecot-1.0.alpha5-o/src/auth/mech-gssapi.c	2005-10-28 05:50:23.000000000 -0600
++++ dovecot-1.0.alpha5/src/auth/mech-gssapi.c	2005-12-27 00:59:36.000000000 -0700
+@@ -27,7 +27,7 @@
+ 
+ #ifdef HAVE_GSSAPI
+ 
+-#include <gssapi/gssapi.h>
++#include <gssapi.h>
+ 
+ /* Non-zero flags defined in RFC 2222 */
+ enum sasl_gssapi_qop {
