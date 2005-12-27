@@ -8,16 +8,17 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl):	Serwer IMAP i POP3 pisany g³ównie z my¶l± o bezpieczeñstwie
 Name:		dovecot
-Version:	0.99.14
-Release:	2
+Version:	1.0.alpha5
+Release:	1
 License:	LGPL v2.1
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	a12e26fd378a46c31ec3a81ab7b55b5b
+# Source0-md5:	a3277835f04d73485ff5ce3cc3daeea7
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
 Patch0:		%{name}-config.patch
+Patch1:	%{name}-gssapi.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -103,6 +104,7 @@ Stan:
 %prep
 %setup -q
 %patch0 -p1
+%patch1 -p1
 
 %build
 %{__libtoolize}
@@ -124,8 +126,10 @@ Stan:
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{pam.d,rc.d/init.d,sysconfig,security}
+install -d $RPM_BUILD_ROOT/{%{_libdir},%{_bindir}
 
 %{__make} install \
+	moduledir=%{_libdir}/%{name}/plugins \
 	DESTDIR=$RPM_BUILD_ROOT
 
 mv -f $RPM_BUILD_ROOT%{_sysconfdir}/{dovecot-example.conf,dovecot.conf}
@@ -160,6 +164,7 @@ fi
 # COPYING contains some notes, not actual LGPL text
 %doc AUTHORS COPYING ChangeLog NEWS README TODO doc/*.txt doc/*.c*f
 %attr(755,root,root) %{_sbindir}/%{name}
+%attr(755,root,root) %{_sbindir}/%{name}pw
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/%{name}
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.imap
