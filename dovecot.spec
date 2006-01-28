@@ -3,22 +3,23 @@
 %bcond_without	ldap	# without LDAP auth
 %bcond_without	mysql	# without MySQL auth
 %bcond_without	pgsql	# without PostgreSQL auth
+%bcond_without	sqlite	# without  SQLite3 auth
 %bcond_without	sasl	# without SASL auth
 #
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl):	Serwer IMAP i POP3 pisany g³ównie z my¶l± o bezpieczeñstwie
 Name:		dovecot
-Version:	1.0.beta1
+Version:	1.0.beta2
 Release:	1
 License:	LGPL v2.1
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	8472078e61859bfc27fdfece8190875d
+# Source0-md5:	a68f623b04876815d6522ac9d7bac869
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
 Patch0:		%{name}-config.patch
-Patch1:	%{name}-gssapi.patch
+Patch1:		%{name}-gssapi.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -31,6 +32,7 @@ BuildRequires:	openssl-devel >= 0.9.7d
 BuildRequires:	pam-devel
 BuildRequires:	pkgconfig
 %{?with_pgsql:BuildRequires:	postgresql-devel}
+%{?with_sqlite:BuildRequires:	sqlite3-devel}
 Requires(post,preun):	/sbin/chkconfig
 Requires:	pam >= 0.79.0
 Provides:	imapdaemon
@@ -118,6 +120,7 @@ Stan:
 	%{?with_mysql:--with-mysql} \
 	%{?with_pgsql:--with-pgsql} \
 	%{?with_sasl:--with-cyrus-sasl2} \
+	%{?with_sqlite:--with-sqlite} \
 	--with-notify=dnotify \
 	--with-ssl=openssl \
 	--with-ssl-dir=/var/lib/openssl
@@ -127,7 +130,7 @@ Stan:
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{pam.d,rc.d/init.d,sysconfig,security}
-install -d $RPM_BUILD_ROOT/{%{_libdir},%{_bindir}
+install -d $RPM_BUILD_ROOT{%{_libdir},%{_bindir},/var/run/dovecot/login}
 
 %{__make} install \
 	moduledir=%{_libdir}/%{name}/plugins \
@@ -172,3 +175,5 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{name}
 %attr(754,root,root) /etc/rc.d/init.d/%{name}
 %attr(755,root,root) %{_libdir}/%{name}
+%attr(700,root,root) %dir /var/run/dovecot
+%attr(755,root,root) %dir /var/run/dovecot/login
