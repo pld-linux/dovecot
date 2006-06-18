@@ -40,10 +40,9 @@ Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
+Requires:	pam >= 0.79.0
 Provides:	group(dovecot)
 Provides:	user(dovecot)
-
-Requires:	pam >= 0.79.0
 Provides:	imapdaemon
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
