@@ -34,6 +34,15 @@ BuildRequires:	pkgconfig
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 %{?with_sqlite:BuildRequires:	sqlite3-devel}
 Requires(post,preun):	/sbin/chkconfig
+Requires(postun):	/usr/sbin/groupdel
+Requires(postun):	/usr/sbin/userdel
+Requires(pre):	/bin/id
+Requires(pre):	/usr/bin/getgid
+Requires(pre):	/usr/sbin/groupadd
+Requires(pre):	/usr/sbin/useradd
+Provides:	group(dovecot)
+Provides:	user(dovecot)
+
 Requires:	pam >= 0.79.0
 Provides:	imapdaemon
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -147,6 +156,10 @@ touch $RPM_BUILD_ROOT/etc/security/blacklist.imap
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%pre
+%groupadd -g 172 dovecot
+%useradd -u 172 -d /usr/share/empty -s /bin/false -c "Dovecot server" -g dovecot dovecot
+
 %post
 /sbin/chkconfig --add dovecot
 if [ -f /var/lock/subsys/dovecot ]; then
@@ -163,6 +176,12 @@ if [ "$1" = "0" ]; then
 	/sbin/chkconfig --del dovecot
 fi
 
+%postun
+if [ "$1" = "0" ]; then
+	%userremove dovecot
+	%groupremove dovecot
+fi
+
 %files
 %defattr(644,root,root,755)
 # COPYING contains some notes, not actual LGPL text
@@ -175,5 +194,5 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{name}
 %attr(754,root,root) /etc/rc.d/init.d/%{name}
 %attr(755,root,root) %{_libdir}/%{name}
-%attr(755,root,root) %dir /var/run/dovecot
-%attr(750,root,root) %dir /var/run/dovecot/login
+%dir /var/run/dovecot
+%attr(750,root,dovecot) %dir /var/run/dovecot/login
