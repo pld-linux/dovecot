@@ -131,9 +131,9 @@ Stan:
 	%{?with_sasl:--with-cyrus-sasl2} \
 	%{?with_sqlite:--with-sqlite} \
 	--with-gssapi \
-	--with-notify=dnotify \
 	--with-ssl=openssl \
-	--with-ssl-dir=/var/lib/openssl
+	--with-ssl-dir=/var/lib/openssl \
+	--sysconfdir=/etc/%{name}
 
 %{__make}
 
@@ -147,7 +147,7 @@ install -d $RPM_BUILD_ROOT{/var/lib/dovecot,/var/run/dovecot/login}
 	moduledir=%{_libdir}/%{name}/plugins \
 	DESTDIR=$RPM_BUILD_ROOT
 
-mv -f $RPM_BUILD_ROOT%{_sysconfdir}/{dovecot-example.conf,dovecot.conf}
+mv -f $RPM_BUILD_ROOT%{_sysconfdir}/%{name}/{dovecot-example.conf,dovecot.conf}
 
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/pam.d/%{name}
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
@@ -190,7 +190,8 @@ fi
 %doc AUTHORS COPYING ChangeLog NEWS README TODO doc/*.txt doc/*.c*f
 %attr(755,root,root) %{_sbindir}/%{name}
 %attr(755,root,root) %{_sbindir}/%{name}pw
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}.conf
+%attr(750,root,root) %dir %{_sysconfdir}/%{name}
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/%{name}
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.imap
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{name}
