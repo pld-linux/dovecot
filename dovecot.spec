@@ -9,12 +9,12 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl):	Serwer IMAP i POP3 pisany g³ównie z my¶l± o bezpieczeñstwie
 Name:		dovecot
-Version:	1.0.beta9
+Version:	1.0.rc1
 Release:	1
 License:	LGPL v2.1
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	5c19a21afb8a02c95f3f62fa37d8e1ed
+# Source0-md5:	44c5a528cb3b43089c1f4b562b660dc7
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
