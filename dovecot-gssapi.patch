@@ -10,3 +10,14 @@ diff -ur dovecot-1.0.alpha5-o/src/auth/mech-gssapi.c dovecot-1.0.alpha5/src/auth
  
  /* Non-zero flags defined in RFC 2222 */
  enum sasl_gssapi_qop {
+--- dovecot-1.0.rc1/configure.in.orig	2006-06-28 00:17:16.000000000 +0200
++++ dovecot-1.0.rc1/configure.in	2006-06-28 21:50:11.883707048 +0200
+@@ -1403,7 +1403,7 @@
+ 			# have gssapi.h
+ 			old_CFLAGS=$CFLAGS
+ 			CFLAGS="$CFLAGS `krb5-config --cflags gssapi`"
+-			AC_CHECK_HEADER([gssapi/gssapi.h], [
++			AC_CHECK_HEADER([gssapi.h], [
+ 				AC_DEFINE(HAVE_GSSAPI,, Build with GSSAPI support)
+ 				have_gssapi=yes
+ 			])
