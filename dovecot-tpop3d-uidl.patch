@@ -1,0 +1,127 @@
+diff -ur dovecot-1.0.rc1.org/dovecot-example.conf dovecot-1.0.rc1/dovecot-example.conf
+--- dovecot-1.0.rc1.org/dovecot-example.conf	2006-06-17 17:05:22.000000000 +0200
++++ dovecot-1.0.rc1/dovecot-example.conf	2006-06-28 23:16:11.761125250 +0200
+@@ -556,6 +556,7 @@
+   #  %u - Mail UID
+   #  %m - MD5 sum of the mailbox headers in hex (mbox only)
+   #  %f - filename (maildir only)
++  #  %M - MD5 sum of the filename (like %f) in hex (maildir only)
+   #
+   # If you want UIDL compatibility with other POP3 servers, use:
+   #  UW's ipop3d         : %08Xv%08Xu
+Tylko w dovecot-1.0.rc1: dovecot-example.conf.orig
+Tylko w dovecot-1.0.rc1: dovecot-tpop3d-uidl.patch
+diff -ur dovecot-1.0.rc1.org/src/lib-storage/index/index-mail.c dovecot-1.0.rc1/src/lib-storage/index/index-mail.c
+--- dovecot-1.0.rc1.org/src/lib-storage/index/index-mail.c	2006-05-08 13:40:57.000000000 +0200
++++ dovecot-1.0.rc1/src/lib-storage/index/index-mail.c	2006-06-28 23:16:11.761125250 +0200
+@@ -693,6 +693,7 @@
+ 		return data->envelope;
+ 	case MAIL_FETCH_FROM_ENVELOPE:
+ 	case MAIL_FETCH_UIDL_FILE_NAME:
++	case MAIL_FETCH_UIDL_MD5_FILE_NAME:
+ 		return NULL;
+ 	case MAIL_FETCH_HEADER_MD5:
+ 		if (mail_index_lookup_ext(mail->trans->trans_view, data->seq,
+Tylko w dovecot-1.0.rc1/src/lib-storage/index: index-mail.c.orig
+diff -ur dovecot-1.0.rc1.org/src/lib-storage/index/maildir/maildir-mail.c dovecot-1.0.rc1/src/lib-storage/index/maildir/maildir-mail.c
+--- dovecot-1.0.rc1.org/src/lib-storage/index/maildir/maildir-mail.c	2006-06-18 00:40:53.000000000 +0200
++++ dovecot-1.0.rc1/src/lib-storage/index/maildir/maildir-mail.c	2006-06-28 23:23:02.546797750 +0200
+@@ -164,6 +164,7 @@
+ 	struct maildir_mailbox *mbox = (struct maildir_mailbox *)mail->ibox;
+ 	enum maildir_uidlist_rec_flag flags;
+ 	const char *fname, *end;
++	unsigned char digest[16];
+ 
+ 	if (field == MAIL_FETCH_UIDL_FILE_NAME) {
+ 		if (_mail->uid != 0) {
+@@ -179,6 +180,21 @@
+ 		}
+ 		end = strchr(fname, MAILDIR_INFO_SEP);
+ 		return end == NULL ? fname : t_strdup_until(fname, end);
++	} else if (field == MAIL_FETCH_UIDL_MD5_FILE_NAME) {
++		if (_mail->uid != 0) {
++			fname = maildir_uidlist_lookup(mbox->uidlist,
++							_mail->uid, &flags);
++			if (fname == NULL) {
++				_mail->expunged = TRUE;
++				return NULL;
++			}
++		} else {
++			fname = maildir_save_file_get_path(_mail->transaction,
++							_mail->seq);
++		}
++		end = strchr(fname, MAILDIR_INFO_SEP);
++		md5_get_digest(fname, end == NULL ? strlen(fname) : end - fname, digest);
++		return binary_to_hex(digest, sizeof(digest));
+ 	}
+ 
+ 	return index_mail_get_special(_mail, field);
+diff -ur dovecot-1.0.rc1.org/src/lib-storage/mail-storage.h dovecot-1.0.rc1/src/lib-storage/mail-storage.h
+--- dovecot-1.0.rc1.org/src/lib-storage/mail-storage.h	2006-04-09 17:50:22.000000000 +0200
++++ dovecot-1.0.rc1/src/lib-storage/mail-storage.h	2006-06-28 23:16:11.765125500 +0200
+@@ -120,7 +120,8 @@
+ 	MAIL_FETCH_IMAP_ENVELOPE	= 0x00004000,
+ 	MAIL_FETCH_FROM_ENVELOPE	= 0x00008000,
+ 	MAIL_FETCH_HEADER_MD5		= 0x00010000,
+-	MAIL_FETCH_UIDL_FILE_NAME	= 0x00020000
++	MAIL_FETCH_UIDL_FILE_NAME	= 0x00020000,
++	MAIL_FETCH_UIDL_MD5_FILE_NAME	= 0x00040000
+ };
+ 
+ enum mailbox_transaction_flags {
+Tylko w dovecot-1.0.rc1/src/lib-storage: mail-storage.h.orig
+diff -ur dovecot-1.0.rc1.org/src/pop3/commands.c dovecot-1.0.rc1/src/pop3/commands.c
+--- dovecot-1.0.rc1.org/src/pop3/commands.c	2006-03-06 21:34:42.000000000 +0100
++++ dovecot-1.0.rc1/src/pop3/commands.c	2006-06-28 23:16:11.765125500 +0200
+@@ -514,6 +514,7 @@
+ 		{ 'u', NULL },
+ 		{ 'm', NULL },
+ 		{ 'f', NULL },
++		{ 'M', NULL },
+ 		{ '\0', NULL }
+ 	};
+ 	struct var_expand_table *tab;
+@@ -560,6 +561,17 @@
+ 				break;
+ 			}
+ 		}
++		if ((uidl_keymask & UIDL_MD5_FILE_NAME) != 0) {
++			tab[4].value =
++				mail_get_special(ctx->mail,
++						 MAIL_FETCH_UIDL_MD5_FILE_NAME);
++			if (tab[4].value == NULL) {
++				/* broken */
++				i_error("UIDL: File name not found");
++				t_pop();
++				break;
++			}
++		}
+ 
+ 		str_truncate(str, 0);
+ 		str_printfa(str, ctx->message == 0 ? "%u " : "+OK %u ",
+diff -ur dovecot-1.0.rc1.org/src/pop3/common.h dovecot-1.0.rc1/src/pop3/common.h
+--- dovecot-1.0.rc1.org/src/pop3/common.h	2006-04-27 14:29:14.000000000 +0200
++++ dovecot-1.0.rc1/src/pop3/common.h	2006-06-28 23:16:11.765125500 +0200
+@@ -13,7 +13,8 @@
+ 	UIDL_UIDVALIDITY	= 0x01,
+ 	UIDL_UID		= 0x02,
+ 	UIDL_MD5		= 0x04,
+-	UIDL_FILE_NAME		= 0x08
++	UIDL_FILE_NAME		= 0x08,
++	UIDL_MD5_FILE_NAME	= 0x10
+ };
+ 
+ extern struct ioloop *ioloop;
+diff -ur dovecot-1.0.rc1.org/src/pop3/main.c dovecot-1.0.rc1/src/pop3/main.c
+--- dovecot-1.0.rc1.org/src/pop3/main.c	2006-06-27 23:00:19.000000000 +0200
++++ dovecot-1.0.rc1/src/pop3/main.c	2006-06-28 23:16:11.765125500 +0200
+@@ -101,6 +101,9 @@
+ 			case 'm':
+ 				mask |= UIDL_MD5;
+ 				break;
++			case 'M':
++				mask |= UIDL_MD5_FILE_NAME;
++				break;
+ 			case 'f':
+ 				mask |= UIDL_FILE_NAME;
+ 				break;
