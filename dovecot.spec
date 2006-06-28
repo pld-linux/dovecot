@@ -24,6 +24,7 @@ URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
+BuildRequires:	heimdal-devel
 BuildRequires:	gettext-devel
 BuildRequires:	libtool
 %{?with_mysql:BuildRequires:	mysql-devel}
@@ -129,6 +130,7 @@ Stan:
 	%{?with_pgsql:--with-pgsql} \
 	%{?with_sasl:--with-cyrus-sasl2} \
 	%{?with_sqlite:--with-sqlite} \
+	--with-gssapi \
 	--with-notify=dnotify \
 	--with-ssl=openssl \
 	--with-ssl-dir=/var/lib/openssl
@@ -138,7 +140,8 @@ Stan:
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{pam.d,rc.d/init.d,sysconfig,security}
-install -d $RPM_BUILD_ROOT{%{_libdir},%{_bindir},/var/run/dovecot/login}
+install -d $RPM_BUILD_ROOT{%{_libdir},%{_bindir}}
+install -d $RPM_BUILD_ROOT{/var/lib/dovecot,/var/run/dovecot/login}
 
 %{__make} install \
 	moduledir=%{_libdir}/%{name}/plugins \
@@ -193,5 +196,6 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{name}
 %attr(754,root,root) /etc/rc.d/init.d/%{name}
 %attr(755,root,root) %{_libdir}/%{name}
+%dir /var/lib/dovecot
 %dir /var/run/dovecot
 %attr(750,root,dovecot) %dir /var/run/dovecot/login
