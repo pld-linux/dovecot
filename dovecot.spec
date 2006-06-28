@@ -11,7 +11,7 @@ Summary(pl):	Serwer IMAP i POP3 pisany g³ównie z my¶l± o bezpieczeñstwie
 Name:		dovecot
 Version:	1.0.rc1
 Release:	1
-License:	LGPL v2.1
+License:	LGPL v2.1 and MIT
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/%{name}-%{version}.tar.gz
 # Source0-md5:	44c5a528cb3b43089c1f4b562b660dc7
