@@ -20,7 +20,6 @@ Source2:	%{name}.init
 Source3:	%{name}.sysconfig
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-gssapi.patch
-Patch2:		%{name}-tpop3d-uidl.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -117,7 +116,6 @@ Stan:
 %setup -q
 %patch0 -p1
 %patch1 -p1
-%patch2 -p1
 
 %build
 %{__libtoolize}
