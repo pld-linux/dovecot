@@ -9,18 +9,18 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl):	Serwer IMAP i POP3 pisany g³ównie z my¶l± o bezpieczeñstwie
 Name:		dovecot
-Version:	1.0.rc2
+Version:	1.0.rc7
 Release:	1
 License:	LGPL v2.1 and MIT
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	e27a248b2ee224e4618aa2f020150041
+# Source0-md5:	665ec0f09fe4f0a8f3f9efd7b9a02297
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-gssapi.patch
-Patch2:		%{name}-unbreak-nss_ldap.patch
+#Patch2:		%{name}-unbreak-nss_ldap.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -117,7 +117,7 @@ Stan:
 %setup -q
 %patch0 -p1
 %patch1 -p1
-%patch2 -p1
+#%patch2 -p1
 
 %build
 %{__libtoolize}
