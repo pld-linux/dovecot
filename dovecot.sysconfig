@@ -1,5 +1,0 @@
-# Customized setings for dovecot
-
-# Define nice level for dovecot
-SERVICE_RUN_NICE_LEVEL="+0"
-
