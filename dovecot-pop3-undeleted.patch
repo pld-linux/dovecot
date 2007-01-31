@@ -1,0 +1,13 @@
+diff -ur dovecot-1.0.rc15-o/src/pop3/client.c dovecot-1.0.rc15/src/pop3/client.c
+--- dovecot-1.0.rc15-o/src/pop3/client.c	2006-08-10 16:26:41.000000000 -0600
++++ dovecot-1.0.rc15/src/pop3/client.c	2007-01-31 16:38:00.000000000 -0700
+@@ -64,7 +64,8 @@
+ 	message_sizes_buf = buffer_create_dynamic(default_pool, 512);
+ 
+ 	memset(&search_arg, 0, sizeof(search_arg));
+-	search_arg.type = SEARCH_ALL;
++	search_arg.type = SEARCH_DELETED;
++	search_arg.not = 1;
+ 
+ 	for (i = 0; i < 2; i++) {
+ 		if (sync_mailbox(client->mailbox, &status) < 0) {
