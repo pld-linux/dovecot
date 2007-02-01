@@ -1,6 +1,48 @@
-diff -ur dovecot-1.0.rc15-o/src/pop3/client.c dovecot-1.0.rc15/src/pop3/client.c
+diff -ur -x 'Makefile*' dovecot-1.0.rc15-o/src/master/mail-process.c dovecot-1.0.rc15/src/master/mail-process.c
+--- dovecot-1.0.rc15-o/src/master/mail-process.c	2006-10-17 04:50:31.000000000 -0600
++++ dovecot-1.0.rc15/src/master/mail-process.c	2007-01-31 17:16:52.000000000 -0700
+@@ -243,6 +243,8 @@
+ 		env_put("POP3_NO_FLAG_UPDATES=1");
+ 	if (set->pop3_reuse_xuidl)
+ 		env_put("POP3_REUSE_XUIDL=1");
++	if (set->pop3_ignore_deleted)
++		env_put("POP3_IGNORE_DELETED=1");
+ 	if (set->pop3_enable_last)
+ 		env_put("POP3_ENABLE_LAST=1");
+ 	if (set->pop3_lock_session)
+diff -ur -x 'Makefile*' dovecot-1.0.rc15-o/src/master/master-settings.c dovecot-1.0.rc15/src/master/master-settings.c
+--- dovecot-1.0.rc15-o/src/master/master-settings.c	2006-11-12 10:56:07.000000000 -0700
++++ dovecot-1.0.rc15/src/master/master-settings.c	2007-01-31 17:16:52.000000000 -0700
+@@ -154,6 +154,7 @@
+ 	DEF(SET_BOOL, pop3_enable_last),
+ 	DEF(SET_BOOL, pop3_reuse_xuidl),
+ 	DEF(SET_BOOL, pop3_lock_session),
++	DEF(SET_BOOL, pop3_ignore_deleted),
+ 	DEF(SET_STR, pop3_uidl_format),
+ 	DEF(SET_STR, pop3_client_workarounds),
+ 	DEF(SET_STR, pop3_logout_format),
+@@ -366,6 +367,7 @@
+ 	MEMBER(pop3_enable_last) FALSE,
+ 	MEMBER(pop3_reuse_xuidl) FALSE,
+ 	MEMBER(pop3_lock_session) FALSE,
++	MEMBER(pop3_ignore_deleted) FALSE,
+ 	MEMBER(pop3_uidl_format) "",
+ 	MEMBER(pop3_client_workarounds) "",
+ 	MEMBER(pop3_logout_format) "top=%t/%p, retr=%r/%b, del=%d/%m, size=%s",
+diff -ur -x 'Makefile*' dovecot-1.0.rc15-o/src/master/master-settings.h dovecot-1.0.rc15/src/master/master-settings.h
+--- dovecot-1.0.rc15-o/src/master/master-settings.h	2006-10-17 04:48:45.000000000 -0600
++++ dovecot-1.0.rc15/src/master/master-settings.h	2007-01-31 17:16:52.000000000 -0700
+@@ -113,6 +113,7 @@
+ 	bool pop3_enable_last;
+ 	bool pop3_reuse_xuidl;
+ 	bool pop3_lock_session;
++	bool pop3_ignore_deleted;
+ 	const char *pop3_uidl_format;
+ 	const char *pop3_client_workarounds;
+ 	const char *pop3_logout_format;
+diff -ur -x 'Makefile*' dovecot-1.0.rc15-o/src/pop3/client.c dovecot-1.0.rc15/src/pop3/client.c
 --- dovecot-1.0.rc15-o/src/pop3/client.c	2006-08-10 16:26:41.000000000 -0600
-+++ dovecot-1.0.rc15/src/pop3/client.c	2007-01-31 16:38:00.000000000 -0700
++++ dovecot-1.0.rc15/src/pop3/client.c	2007-01-31 17:16:52.000000000 -0700
 @@ -64,7 +64,8 @@
  	message_sizes_buf = buffer_create_dynamic(default_pool, 512);
  
@@ -11,3 +53,22 @@ diff -ur dovecot-1.0.rc15-o/src/pop3/client.c dovecot-1.0.rc15/src/pop3/client.c
  
  	for (i = 0; i < 2; i++) {
  		if (sync_mailbox(client->mailbox, &status) < 0) {
+diff -ur -x 'Makefile*' dovecot-1.0.rc15-o/src/pop3/main.c dovecot-1.0.rc15/src/pop3/main.c
+--- dovecot-1.0.rc15-o/src/pop3/main.c	2006-08-10 12:38:04.000000000 -0600
++++ dovecot-1.0.rc15/src/pop3/main.c	2007-01-31 17:16:52.000000000 -0700
+@@ -46,6 +46,7 @@
+ bool no_flag_updates = FALSE;
+ bool reuse_xuidl = FALSE;
+ bool lock_session = FALSE;
++bool ignore_deleted_messages = FALSE;
+ const char *uidl_format, *logout_format;
+ enum uidl_keys uidl_keymask;
+ 
+@@ -218,6 +219,7 @@
+ 	no_flag_updates = getenv("POP3_NO_FLAG_UPDATES") != NULL;
+ 	reuse_xuidl = getenv("POP3_REUSE_XUIDL") != NULL;
+ 	lock_session = getenv("POP3_LOCK_SESSION") != NULL;
++	ignore_deleted_messages = getenv("POP3_IGNORE_DELETED") != NULL;
+ 
+ 	uidl_format = getenv("POP3_UIDL_FORMAT");
+ 	if (uidl_format == NULL || *uidl_format == '\0')
