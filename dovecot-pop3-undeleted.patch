@@ -1,6 +1,6 @@
-diff -ur -x 'Makefile*' dovecot-1.0.rc15-o/src/master/mail-process.c dovecot-1.0.rc15/src/master/mail-process.c
+diff -ur dovecot-1.0.rc15-o/src/master/mail-process.c dovecot-1.0.rc15/src/master/mail-process.c
 --- dovecot-1.0.rc15-o/src/master/mail-process.c	2006-10-17 04:50:31.000000000 -0600
-+++ dovecot-1.0.rc15/src/master/mail-process.c	2007-01-31 17:16:52.000000000 -0700
++++ dovecot-1.0.rc15/src/master/mail-process.c	2007-01-31 18:33:18.000000000 -0700
 @@ -243,6 +243,8 @@
  		env_put("POP3_NO_FLAG_UPDATES=1");
  	if (set->pop3_reuse_xuidl)
@@ -10,9 +10,9 @@ diff -ur -x 'Makefile*' dovecot-1.0.rc15-o/src/master/mail-process.c dovecot-1.0
  	if (set->pop3_enable_last)
  		env_put("POP3_ENABLE_LAST=1");
  	if (set->pop3_lock_session)
-diff -ur -x 'Makefile*' dovecot-1.0.rc15-o/src/master/master-settings.c dovecot-1.0.rc15/src/master/master-settings.c
+diff -ur dovecot-1.0.rc15-o/src/master/master-settings.c dovecot-1.0.rc15/src/master/master-settings.c
 --- dovecot-1.0.rc15-o/src/master/master-settings.c	2006-11-12 10:56:07.000000000 -0700
-+++ dovecot-1.0.rc15/src/master/master-settings.c	2007-01-31 17:16:52.000000000 -0700
++++ dovecot-1.0.rc15/src/master/master-settings.c	2007-01-31 18:33:18.000000000 -0700
 @@ -154,6 +154,7 @@
  	DEF(SET_BOOL, pop3_enable_last),
  	DEF(SET_BOOL, pop3_reuse_xuidl),
@@ -29,9 +29,9 @@ diff -ur -x 'Makefile*' dovecot-1.0.rc15-o/src/master/master-settings.c dovecot-
  	MEMBER(pop3_uidl_format) "",
  	MEMBER(pop3_client_workarounds) "",
  	MEMBER(pop3_logout_format) "top=%t/%p, retr=%r/%b, del=%d/%m, size=%s",
-diff -ur -x 'Makefile*' dovecot-1.0.rc15-o/src/master/master-settings.h dovecot-1.0.rc15/src/master/master-settings.h
+diff -ur dovecot-1.0.rc15-o/src/master/master-settings.h dovecot-1.0.rc15/src/master/master-settings.h
 --- dovecot-1.0.rc15-o/src/master/master-settings.h	2006-10-17 04:48:45.000000000 -0600
-+++ dovecot-1.0.rc15/src/master/master-settings.h	2007-01-31 17:16:52.000000000 -0700
++++ dovecot-1.0.rc15/src/master/master-settings.h	2007-01-31 18:33:18.000000000 -0700
 @@ -113,6 +113,7 @@
  	bool pop3_enable_last;
  	bool pop3_reuse_xuidl;
@@ -40,22 +40,26 @@ diff -ur -x 'Makefile*' dovecot-1.0.rc15-o/src/master/master-settings.h dovecot-
  	const char *pop3_uidl_format;
  	const char *pop3_client_workarounds;
  	const char *pop3_logout_format;
-diff -ur -x 'Makefile*' dovecot-1.0.rc15-o/src/pop3/client.c dovecot-1.0.rc15/src/pop3/client.c
+diff -ur dovecot-1.0.rc15-o/src/pop3/client.c dovecot-1.0.rc15/src/pop3/client.c
 --- dovecot-1.0.rc15-o/src/pop3/client.c	2006-08-10 16:26:41.000000000 -0600
-+++ dovecot-1.0.rc15/src/pop3/client.c	2007-01-31 17:16:52.000000000 -0700
-@@ -64,7 +64,8 @@
++++ dovecot-1.0.rc15/src/pop3/client.c	2007-01-31 18:37:47.000000000 -0700
+@@ -64,7 +64,12 @@
  	message_sizes_buf = buffer_create_dynamic(default_pool, 512);
  
  	memset(&search_arg, 0, sizeof(search_arg));
 -	search_arg.type = SEARCH_ALL;
-+	search_arg.type = SEARCH_DELETED;
-+	search_arg.not = 1;
++	if(pop3_ignore_deleted) {
++		search_arg.type = SEARCH_DELETED;
++		search_arg.not = 1;
++	} else {
++		search_arg.type = SEARCH_ALL;
++	}
  
  	for (i = 0; i < 2; i++) {
  		if (sync_mailbox(client->mailbox, &status) < 0) {
-diff -ur -x 'Makefile*' dovecot-1.0.rc15-o/src/pop3/main.c dovecot-1.0.rc15/src/pop3/main.c
+diff -ur dovecot-1.0.rc15-o/src/pop3/main.c dovecot-1.0.rc15/src/pop3/main.c
 --- dovecot-1.0.rc15-o/src/pop3/main.c	2006-08-10 12:38:04.000000000 -0600
-+++ dovecot-1.0.rc15/src/pop3/main.c	2007-01-31 17:16:52.000000000 -0700
++++ dovecot-1.0.rc15/src/pop3/main.c	2007-01-31 18:33:18.000000000 -0700
 @@ -46,6 +46,7 @@
  bool no_flag_updates = FALSE;
  bool reuse_xuidl = FALSE;
