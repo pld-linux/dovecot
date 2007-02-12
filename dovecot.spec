@@ -7,7 +7,7 @@
 %bcond_without	sasl	# without SASL auth
 #
 Summary:	IMAP and POP3 server written with security primarily in mind
-Summary(pl.UTF-8):   Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
+Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
 Version:	1.0.rc22
 Release:	1
