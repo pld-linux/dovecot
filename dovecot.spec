@@ -9,17 +9,17 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl):	Serwer IMAP i POP3 pisany g³ównie z my¶l± o bezpieczeñstwie
 Name:		dovecot
-Version:	1.0.rc15
-Release:	2
+Version:	1.0.rc23
+Release:	1
 License:	LGPL v2.1 and MIT
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	26f3d2b075856b1b1d180146363819e6
+# Source0-md5:	d595481d6c355106114f4263e49f70f3
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
 Patch0:		%{name}-config.patch
-Patch1:		%{name}-gssapi.patch
+#Patch1:		%{name}-pop3-undeleted.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -33,6 +33,7 @@ BuildRequires:	openssl-devel >= 0.9.7d
 BuildRequires:	pam-devel
 BuildRequires:	pkgconfig
 %{?with_pgsql:BuildRequires:	postgresql-devel}
+BuildRequires:	sed >= 4.0
 %{?with_sqlite:BuildRequires:	sqlite3-devel}
 Requires(post,preun):	/sbin/chkconfig
 Requires(postun):	/usr/sbin/groupdel
@@ -69,15 +70,14 @@ with little effort.
 
 Status:
 - should be quite ready for use with normal IMAP clients
-- complete IMAP4rev1 support
-- supports THREAD and SORT extensions, required by many IMAP webmails
-- complete TLS/SSL support, using either GNUTLS or OpenSSL
+- complete IMAP4rev1 and POP3 support
+- supports THREAD, SORT and IDLE extensions, required by many IMAP
+  webmails
+- complete TLS/SSL support
 - IPv6 ready
 - shared mailboxes aren't yet supported
-- Maildir++ quota isn't yet supported; hard filesystem quota can also
-  be problematic
-- mbox support isn't yet perfect - there's a few more or less
-  theoretical problems, but nothing too bad.
+- Maildir++ quota is supported, bad hard filesystem quota can be
+  problematic
 
 %description -l pl
 Dovecot to serwer IMAP i POP3 dla systemów linuksowych/uniksowych,
@@ -102,20 +102,19 @@ wiêkszo¶æ potrzebnych informacji z indeksu.
 
 Stan:
 - powinien byæ gotowy do u¿ycia ze zwyk³ymi klientami IMAP
-- pe³na obs³uga IMAP4rev1
-- obs³uga rozszerzeñ THREAD i SORT, wymaganych przez wiele webmaili
-  IMAP
+- pe³na obs³uga IMAP4rev1 i POP3
+- obs³uga rozszerzeñ THREAD, SORT i IDLE, wymaganych przez wiele
+  webmaili IMAP
 - obs³uga IPv6
-- jeszcze nie ma wspó³dzielonych skrzynek
-- quota Maildir++ jeszcze nie jest obs³ugiwana; twarda quota na
-  systemach plików mo¿e sprawiaæ problemy
-- obs³uga mboksów jeszcze nie jest idealna - jest jeszcze kilka mniej
-  lub bardziej teoretycznych problemów, ale nic strasznego.
+- pe³na obs³uga TLS/SSL
+- quota Maildir++ jest obs³ugiwana, ale twarda quota na systemach
+  plików mo¿e byæ problematyczna
 
 %prep
 %setup -q
 %patch0 -p1
-%patch1 -p1
+#%patch1 -p1
+%{__sed} -i 's,/usr/lib/dovecot,%{_libdir}/dovecot,g' dovecot-example.conf
 
 %build
 touch config.rpath
