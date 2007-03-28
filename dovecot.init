@@ -51,12 +51,17 @@ case "$1" in
 	$0 start
 	exit $?
 	;;
+  reload)
+  	msg_reloading "Dovecot"
+  	killproc dovecot -HUP
+	exit $?
+	;;
   status)
   	status dovecot
 	exit $?
 	;;
   *)
-	msg_usage "$0 {start|stop|restart|force-reload|status}"
+	msg_usage "$0 {start|stop|reload|restart|force-reload|status}"
 	exit 3
 esac
 
