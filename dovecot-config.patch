@@ -1,6 +1,7 @@
---- dovecot-1.0.rc21/dovecot-example.conf.orig	2007-02-02 12:17:48.000000000 +0100
-+++ dovecot-1.0.rc21/dovecot-example.conf	2007-02-05 02:12:05.942962919 +0100
-@@ -87,8 +87,8 @@
+diff -ur dovecot-1.0.0-o/dovecot-example.conf dovecot-1.0.0/dovecot-example.conf
+--- dovecot-1.0.0-o/dovecot-example.conf	2007-03-30 05:36:18.000000000 -0600
++++ dovecot-1.0.0/dovecot-example.conf	2007-04-13 23:20:41.000000000 -0600
+@@ -91,8 +91,8 @@
  # dropping root privileges, so keep the key file unreadable by anyone but
  # root. Included doc/mkcert.sh can be used to easily generate self-signed
  # certificate, just make sure to update the domains in dovecot-openssl.cnf
@@ -11,16 +12,16 @@
  
  # If key file is password protected, give the password here. Alternatively
  # give it when starting dovecot with -p parameter.
-@@ -133,7 +133,7 @@
+@@ -138,7 +138,7 @@
+ # and don't use it anywhere else. The user must also belong to a group where
  # only it has access, it's used to control access for authentication process.
- # Note that this user is NOT used to access mails.
- # http://wiki.dovecot.org/UserIds
+ # Note that this user is NOT used to access mails. <doc/wiki/UserIds.txt>
 -#login_user = dovecot
 +login_user = dovecot
  
  # Set max. process size in megabytes. If you don't use
  # login_process_per_connection you might need to grow this.
-@@ -486,19 +486,19 @@
+@@ -498,19 +498,19 @@
  
  protocol imap {
    # Login executable location.
@@ -44,7 +45,7 @@
  
    # Maximum IMAP command line length in bytes. Some clients generate very long
    # command lines with huge mailboxes, so you may need to raise this if you get
-@@ -508,7 +508,7 @@
+@@ -520,7 +520,7 @@
    # Support for dynamically loadable plugins. mail_plugins is a space separated
    # list of plugins to load.
    #mail_plugins = 
@@ -53,7 +54,7 @@
  
    # Send IMAP capabilities in greeting message. This makes it unnecessary for
    # clients to request it with CAPABILITY command, so it saves one round-trip.
-@@ -551,11 +551,11 @@
+@@ -563,11 +563,11 @@
  
  protocol pop3 {
    # Login executable location.
@@ -67,7 +68,7 @@
  
    # Don't try to set mails non-recent or seen with POP3 sessions. This is
    # mostly intended to reduce disk I/O. With maildir it doesn't move files
-@@ -615,7 +615,7 @@
+@@ -627,7 +627,7 @@
    # Support for dynamically loadable plugins. mail_plugins is a space separated
    # list of plugins to load.
    #mail_plugins = 
@@ -76,7 +77,7 @@
  
    # Workarounds for various client bugs:
    #   outlook-no-nuls:
-@@ -643,7 +643,7 @@
+@@ -655,7 +655,7 @@
    # Support for dynamically loadable plugins. mail_plugins is a space separated
    # list of plugins to load.
    #mail_plugins = 
@@ -85,7 +86,7 @@
  
    # Binary to use for sending mails.
    #sendmail_path = /usr/lib/sendmail
-@@ -657,7 +657,7 @@
+@@ -669,7 +669,7 @@
  ##
  
  # Executable location
@@ -94,3 +95,7 @@
  
  # Set max. process size in megabytes.
  #auth_process_size = 256
+Only in dovecot-1.0.0: dovecot-example.conf~
+Only in dovecot-1.0.0: dovecot-example.conf.orig
+Only in dovecot-1.0.0: dovecot-example.conf.rej
+Only in dovecot-1.0.0: dovecot-example.conf.rej~
