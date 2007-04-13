@@ -23,10 +23,7 @@ else
 	exit 0
 fi
 
-RETVAL=0
-# See how we were called.
-case "$1" in
-  start)
+start() {
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/dovecot ]; then
 		msg_starting "Dovecot"
@@ -36,19 +33,34 @@ case "$1" in
 	else
 		msg_already_running "Dovecot"
 	fi
-	;;
-  stop)
-  	if [ -f /var/lock/subsys/dovecot ]; then
+}
+
+stop() {
+	if [ -f /var/lock/subsys/dovecot ]; then
 		msg_stopping "Dovecot"
 		killproc dovecot
 		rm -f /var/lock/subsys/dovecot
 	else
 		msg_not_running "Dovecot"
 	fi
+}
+
+RETVAL=0
+# See how we were called.
+case "$1" in
+  start)
+  	start
+	;;
+  stop)
+  	stop
 	;;
   restart|force-reload)
-	$0 stop
-	$0 start
+	stop
+	start
+	;;
+  reload)
+  	msg_reloading "Dovecot"
+  	killproc dovecot -HUP
 	exit $?
 	;;
   status)
@@ -56,7 +68,7 @@ case "$1" in
 	exit $?
 	;;
   *)
-	msg_usage "$0 {start|stop|restart|force-reload|status}"
+	msg_usage "$0 {start|stop|reload|restart|force-reload|status}"
 	exit 3
 esac
 
