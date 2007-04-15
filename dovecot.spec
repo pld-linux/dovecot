@@ -3,7 +3,7 @@
 %bcond_without	ldap	# without LDAP auth
 %bcond_without	mysql	# without MySQL auth
 %bcond_without	pgsql	# without PostgreSQL auth
-%bcond_without	sqlite	# without  SQLite3 auth
+%bcond_without	sqlite	# without SQLite3 auth
 %bcond_without	sasl	# without SASL auth
 #
 Summary:	IMAP and POP3 server written with security primarily in mind
