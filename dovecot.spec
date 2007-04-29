@@ -187,7 +187,7 @@ fi
 %files
 %defattr(644,root,root,755)
 # COPYING contains some notes, not actual LGPL text
-%doc AUTHORS COPYING ChangeLog NEWS README TODO doc/*.txt doc/*.c*f wiki/*.txt
+%doc AUTHORS COPYING ChangeLog NEWS README TODO doc/*.txt doc/*.c*f doc/wiki/*.txt
 %attr(755,root,root) %{_sbindir}/%{name}
 %attr(755,root,root) %{_sbindir}/%{name}pw
 %attr(750,root,root) %dir %{_sysconfdir}/%{name}
