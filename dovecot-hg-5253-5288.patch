@@ -1,0 +1,908 @@
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/auth/auth-request-handler.c
+--- a/src/auth/auth-request-handler.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/auth/auth-request-handler.c	Sun May 27 16:45:26 2007 +0300
+@@ -101,7 +101,7 @@ void auth_request_handler_check_timeouts
+ 	while (hash_iterate(iter, &key, &value)) {
+ 		struct auth_request *request = value;
+ 
+-		if (request->created + AUTH_REQUEST_TIMEOUT < ioloop_time)
++		if (request->last_access + AUTH_REQUEST_TIMEOUT < ioloop_time)
+ 			auth_request_handler_remove(handler, request);
+ 	}
+ 	hash_iterate_deinit(iter);
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/auth/auth-request.c
+--- a/src/auth/auth-request.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/auth/auth-request.c	Sun May 27 16:45:26 2007 +0300
+@@ -33,7 +33,7 @@ auth_request_new(struct auth *auth, stru
+ 	request->userdb = auth->userdbs;
+ 
+ 	request->refcount = 1;
+-	request->created = ioloop_time;
++	request->last_access = ioloop_time;
+ 	request->credentials = -1;
+ 
+ 	request->auth = auth;
+@@ -53,7 +53,7 @@ struct auth_request *auth_request_new_du
+ 	auth_request->pool = pool;
+ 
+ 	auth_request->refcount = 1;
+-	auth_request->created = ioloop_time;
++	auth_request->last_access = ioloop_time;
+ 	auth_request->auth = auth;
+ 	auth_request->passdb = auth->passdbs;
+ 	auth_request->userdb = auth->userdbs;
+@@ -75,6 +75,7 @@ void auth_request_success(struct auth_re
+ 
+ 	request->state = AUTH_REQUEST_STATE_FINISHED;
+ 	request->successful = TRUE;
++	request->last_access = ioloop_time;
+ 	request->callback(request, AUTH_CLIENT_RESULT_SUCCESS,
+ 			  data, data_size);
+ }
+@@ -84,6 +85,7 @@ void auth_request_fail(struct auth_reque
+ 	i_assert(request->state == AUTH_REQUEST_STATE_MECH_CONTINUE);
+ 
+ 	request->state = AUTH_REQUEST_STATE_FINISHED;
++	request->last_access = ioloop_time;
+ 	request->callback(request, AUTH_CLIENT_RESULT_FAILURE, NULL, 0);
+ }
+ 
+@@ -133,6 +135,8 @@ void auth_request_export(struct auth_req
+ 		str_append(str, "\trip=");
+ 		str_append(str, net_ip2addr(&request->remote_ip));
+ 	}
++	if (request->secured)
++		str_append(str, "\tsecured=1");
+ }
+ 
+ bool auth_request_import(struct auth_request *request,
+@@ -177,6 +181,7 @@ void auth_request_continue(struct auth_r
+ {
+ 	i_assert(request->state == AUTH_REQUEST_STATE_MECH_CONTINUE);
+ 
++	request->last_access = ioloop_time;
+ 	request->mech->auth_continue(request, data, data_size);
+ }
+ 
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/auth/auth-request.h
+--- a/src/auth/auth-request.h	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/auth/auth-request.h	Sun May 27 16:45:26 2007 +0300
+@@ -54,7 +54,7 @@ struct auth_request {
+ 	unsigned int connect_uid;
+ 	unsigned int client_pid;
+ 	unsigned int id;
+-	time_t created;
++	time_t last_access;
+ 
+ 	const char *service;
+ 	struct ip_addr local_ip, remote_ip;
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/deliver/deliver.c
+--- a/src/deliver/deliver.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/deliver/deliver.c	Sun May 27 16:45:26 2007 +0300
+@@ -158,7 +158,8 @@ const char *deliver_get_return_address(s
+ 		message_address_parse(pool_datastack_create(),
+ 				      (const unsigned char *)str,
+ 				      strlen(str), 1, FALSE);
+-	return addr == NULL || addr->mailbox == NULL || addr->domain == NULL ?
++	return addr == NULL || addr->mailbox == NULL || addr->domain == NULL ||
++		*addr->mailbox == '\0' || *addr->domain == '\0' ?
+ 		NULL : t_strconcat(addr->mailbox, "@", addr->domain, NULL);
+ }
+ 
+@@ -276,6 +277,15 @@ static void config_file_init(const char 
+ 		}
+ 		if (setting_is_bool(key) && strcasecmp(value, "yes") != 0)
+ 			continue;
++
++		if (strcasecmp(key, "mail_debug") == 0) {
++			/* We'll internally use only DEBUG environment.
++			   Postfix's sendmail binary uses MAIL_DEBUG
++			   environment for different purposes and we really
++			   don't want to enable it. */
++			env_put("DEBUG=1");
++			continue;
++		}
+ 
+ 		env_put(t_strconcat(t_str_ucase(key), "=", value, NULL));
+ 	}
+@@ -564,9 +574,6 @@ int main(int argc, char *argv[])
+ 	config_file_init(config_path);
+ 	open_logfile(user);
+ 
+-	if (getenv("MAIL_DEBUG") != NULL)
+-		env_put("DEBUG=1");
+-
+ 	if (getenv("MAIL_PLUGINS") == NULL)
+ 		modules = NULL;
+ 	else {
+@@ -631,17 +638,20 @@ int main(int argc, char *argv[])
+         mail_storage_init();
+ 	mail_storage_register_all();
+ 
+-	/* MAIL comes from userdb, MAIL_LOCATION from dovecot.conf */
++	/* MAIL comes from userdb, MAIL_LOCATION from dovecot.conf.
++	   We don't want to expand settings coming from userdb. */
+ 	mail_env = getenv("MAIL");
+-	if (mail_env == NULL) 
++	if (mail_env == NULL)  {
+ 		mail_env = getenv("MAIL_LOCATION");
+-	if (mail_env == NULL)  {
+-		/* Keep this for backwards compatibility */
+-		mail_env = getenv("DEFAULT_MAIL_ENV");
+-	}
+-	if (mail_env != NULL) {
+-		table = get_var_expand_table(destination, getenv("HOME"));
+-		mail_env = expand_mail_env(mail_env, table);
++		if (mail_env == NULL)  {
++			/* Keep this for backwards compatibility */
++			mail_env = getenv("DEFAULT_MAIL_ENV");
++		}
++		if (mail_env != NULL) {
++			table = get_var_expand_table(destination,
++						     getenv("HOME"));
++			mail_env = expand_mail_env(mail_env, table);
++		}
+ 	}
+ 
+ 	module_dir_init(modules);
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/deliver/smtp-client.c
+--- a/src/deliver/smtp-client.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/deliver/smtp-client.c	Sun May 27 16:45:26 2007 +0300
+@@ -27,28 +27,6 @@ static struct smtp_client *smtp_client_d
+ 	return client;
+ }
+ 
+-static void smtp_env_clean(void)
+-{
+-	extern char **environ;
+-	char **p;
+-	array_t ARRAY_DEFINE(new_env, char *);
+-	unsigned int i, count;
+-
+-	/* copy the environment, but drop out the unwanted fields. */
+-	ARRAY_CREATE(&new_env, pool_datastack_create(), char *, 128);
+-	for (p = environ; *p != NULL; p++) {
+-		if (strncmp(*p, "DEBUG=", 6) != 0)
+-			array_append(&new_env, p, 1);
+-	}
+-
+-	/* then recreate the environment */
+-	env_clean();
+-
+-	p = array_get_modifyable(&new_env, &count);
+-	for (i = 0; i < count; i++)
+-		env_put(p[i]);
+-}
+-
+ static void smtp_client_run_sendmail(const char *destination,
+ 				     const char *return_path, int fd)
+ {
+@@ -65,14 +43,6 @@ static void smtp_client_run_sendmail(con
+ 
+ 	if (dup2(fd, STDIN_FILENO) < 0)
+ 		i_fatal("dup2() failed: %m");
+-
+-	if (getenv("DEBUG") != NULL) {
+-		/* Postfix's sendmail binary uses DEBUG environment for its own
+-		   purposes, which pretty much break things. Remove it before
+-		   continuing. FIXME: Perhaps the whole environment could be
+-		   cleaned? */
+-		smtp_env_clean();
+-	}
+ 
+ 	(void)execv(deliver_set->sendmail_path, (char **)argv);
+ 	i_fatal("execv(%s) failed: %m", deliver_set->sendmail_path);
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/imap/cmd-copy.c
+--- a/src/imap/cmd-copy.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/imap/cmd-copy.c	Sun May 27 16:45:26 2007 +0300
+@@ -12,13 +12,14 @@
+ 
+ static void client_send_sendalive_if_needed(struct client *client)
+ {
+-	time_t now;
++	time_t now, last_io;
+ 
+ 	if (o_stream_get_buffer_used_size(client->output) != 0)
+ 		return;
+ 
+ 	now = time(NULL);
+-	if (now - client->last_output > MAIL_STORAGE_STAYALIVE_SECS) {
++	last_io = I_MAX(client->last_input, client->last_output);
++	if (now - last_io > MAIL_STORAGE_STAYALIVE_SECS) {
+ 		o_stream_send_str(client->output, "* OK Hang in there..\r\n");
+ 		o_stream_flush(client->output);
+ 		client->last_output = now;
+@@ -49,7 +50,7 @@ static int fetch_and_copy(struct client 
+ 			break;
+ 		}
+ 
+-		if ((++copy_count % COPY_CHECK_INTERVAL) != 0)
++		if ((++copy_count % COPY_CHECK_INTERVAL) == 0)
+ 			client_send_sendalive_if_needed(client);
+ 
+ 		keywords_list = mail_get_keywords(mail);
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/lib-index/mail-cache-compress.c
+--- a/src/lib-index/mail-cache-compress.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/lib-index/mail-cache-compress.c	Sun May 27 16:45:26 2007 +0300
+@@ -123,7 +123,7 @@ mail_cache_copy(struct mail_cache *cache
+ 	struct mail_cache_record cache_rec;
+ 	struct ostream *output;
+ 	buffer_t *buffer;
+-	uint32_t i, message_count, seq, first_new_seq, old_offset;
++	uint32_t i, message_count, seq, first_new_seq, ext_offset, old_offset;
+ 	uoff_t offset;
+ 
+ 	/* get sequence of first message which doesn't need its temp fields
+@@ -179,7 +179,8 @@ mail_cache_copy(struct mail_cache *cache
+ 		if (cache_rec.size == sizeof(cache_rec))
+ 			continue;
+ 
+-		mail_index_update_ext(t, seq, cache->ext_id, &output->offset,
++		ext_offset = output->offset;
++		mail_index_update_ext(t, seq, cache->ext_id, &ext_offset,
+ 				      &old_offset);
+ 
+ 		buffer_write(ctx.buffer, 0, &cache_rec, sizeof(cache_rec));
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/lib-index/mail-index-lock.c
+--- a/src/lib-index/mail-index-lock.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/lib-index/mail-index-lock.c	Sun May 27 16:45:26 2007 +0300
+@@ -455,8 +455,11 @@ static void mail_index_write_map(struct 
+ 	} else {
+ 		/* write the modified parts. header is small enough to be
+ 		   always written, write_seq_* specifies the record range. */
+-                if (mail_index_write_map_over(index) < 0)
++		if (mail_index_write_map_over(index) < 0) {
++			mail_index_set_error(index,
++				"pwrite_full(%s) failed: %m", index->filepath);
+ 			mail_index_set_inconsistent(index);
++		}
+ 	}
+ 
+ 	map->write_to_disk = FALSE;
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/lib-mail/istream-header-filter.c
+--- a/src/lib-mail/istream-header-filter.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/lib-mail/istream-header-filter.c	Sun May 27 16:45:26 2007 +0300
+@@ -70,6 +70,16 @@ static ssize_t read_header(struct header
+ 	    mstream->istream.istream.v_offset +
+ 	    (mstream->istream.pos - mstream->istream.skip) ==
+ 	    mstream->header_size.virtual_size) {
++		/* if there's no body at all, return EOF */
++		(void)i_stream_get_data(mstream->input, &pos);
++		if (pos == 0) {
++			ret = i_stream_read(mstream->input);
++			if (ret == -1) {
++				/* EOF */
++				mstream->istream.istream.eof = TRUE;
++				return -1;
++			}
++		}
+ 		/* we don't support mixing headers and body.
+ 		   it shouldn't be needed. */
+ 		return -2;
+@@ -180,11 +190,13 @@ static ssize_t read_header(struct header
+ 	}
+ 
+ 	if (ret == 0) {
++		/* we're at the end of headers. */
+ 		i_assert(hdr == NULL);
+ 		i_assert(mstream->istream.istream.v_offset +
+ 			 mstream->istream.pos ==
+ 			 mstream->header_size.virtual_size);
+-		return -2;
++
++		return read_header(mstream);
+ 	}
+ 
+ 	return ret;
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/lib-storage/index/index-mail-headers.c
+--- a/src/lib-storage/index/index-mail-headers.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/lib-storage/index/index-mail-headers.c	Sun May 27 16:45:26 2007 +0300
+@@ -358,8 +358,7 @@ int index_mail_parse_headers(struct inde
+ 
+ 	index_mail_parse_header_init(mail, headers);
+ 
+-	if (data->parser_ctx == NULL && (data->parts == NULL ||
+-					 data->save_bodystructure_header)) {
++	if (data->parts == NULL || data->save_bodystructure_header) {
+ 		/* initialize bodystructure parsing in case we read the whole
+ 		   message. */
+ 		if (data->parser_ctx != NULL)
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/lib-storage/index/maildir/maildir-storage.c
+--- a/src/lib-storage/index/maildir/maildir-storage.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/lib-storage/index/maildir/maildir-storage.c	Sun May 27 16:45:26 2007 +0300
+@@ -552,6 +552,10 @@ maildir_open(struct maildir_storage *sto
+ 	}
+ 
+ 	index_storage_mailbox_init(&mbox->ibox, name, flags, FALSE);
++
++	if (access(t_strconcat(path, "/cur", NULL), W_OK) < 0 &&
++	    errno == EACCES)
++		mbox->ibox.readonly = TRUE;
+ 	return &mbox->ibox.box;
+ }
+ 
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/lib-storage/index/maildir/maildir-sync.c
+--- a/src/lib-storage/index/maildir/maildir-sync.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/lib-storage/index/maildir/maildir-sync.c	Sun May 27 16:45:26 2007 +0300
+@@ -182,6 +182,7 @@
+ 
+ #include <stdio.h>
+ #include <stddef.h>
++#include <stdlib.h>
+ #include <unistd.h>
+ #include <dirent.h>
+ #include <sys/stat.h>
+@@ -298,13 +299,20 @@ int maildir_filename_get_flags(struct ma
+ 	return 1;
+ }
+ 
++static int char_cmp(const void *p1, const void *p2)
++{
++	const unsigned char *c1 = p1, *c2 = p2;
++
++	return *c1 - *c2;
++}
++
+ static void
+ maildir_filename_append_keywords(struct maildir_keywords_sync_ctx *ctx,
+ 				 array_t *keywords, string_t *str)
+ {
+ 	ARRAY_SET_TYPE(keywords, unsigned int);
+ 	const unsigned int *indexes;
+-	unsigned int i, count;
++	unsigned int i, count, start = str_len(str);
+ 	char chr;
+ 
+ 	indexes = array_get(keywords, &count);
+@@ -313,6 +321,8 @@ maildir_filename_append_keywords(struct 
+ 		if (chr != '\0')
+ 			str_append_c(str, chr);
+ 	}
++
++	qsort(str_c_modifyable(str) + start, str_len(str) - start, 1, char_cmp);
+ }
+ 
+ const char *maildir_filename_set_flags(struct maildir_keywords_sync_ctx *ctx,
+@@ -756,7 +766,8 @@ static int maildir_fix_duplicate(struct 
+ 		i_warning("Fixed a duplicate: %s -> %s", old_fname, new_fname);
+ 	else if (errno != ENOENT) {
+ 		mail_storage_set_critical(STORAGE(mbox->storage),
+-			"rename(%s, %s) failed: %m", old_path, new_path);
++			"Couldn't fix a duplicate: rename(%s, %s) failed: %m",
++			old_path, new_path);
+ 		ret = -1;
+ 	}
+ 	t_pop();
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/lib-storage/index/maildir/maildir-uidlist.c
+--- a/src/lib-storage/index/maildir/maildir-uidlist.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/lib-storage/index/maildir/maildir-uidlist.c	Sun May 27 16:45:26 2007 +0300
+@@ -347,6 +347,11 @@ maildir_uidlist_update_read(struct maild
+ 			"%s: next_uid was lowered (%u -> %u)",
+ 			uidlist->fname, uidlist->next_uid, next_uid);
+ 		ret = 0;
++	} else if (uid_validity == 0 || next_uid == 0) {
++                mail_storage_set_critical(storage,
++			"%s: Broken header (uidvalidity = %u, next_uid=%u)",
++			uidlist->fname, uid_validity, next_uid);
++		ret = 0;
+ 	} else {
+ 		uidlist->uid_validity = uid_validity;
+ 		uidlist->next_uid = next_uid;
+@@ -543,7 +548,8 @@ void maildir_uidlist_set_uid_validity(st
+ 				      uint32_t uid_validity, uint32_t next_uid)
+ {
+ 	uidlist->uid_validity = uid_validity;
+-	if (next_uid != 0)
++	/* set next_uid only if we know newer UIDs haven't been added yet */
++	if (uidlist->next_uid < next_uid)
+ 		uidlist->next_uid = next_uid;
+ }
+ 
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/lib-storage/index/maildir/maildir-util.c
+--- a/src/lib-storage/index/maildir/maildir-util.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/lib-storage/index/maildir/maildir-util.c	Sun May 27 16:45:26 2007 +0300
+@@ -42,6 +42,23 @@ static int maildir_file_do_try(struct ma
+ 	return ret;
+ }
+ 
++static int do_racecheck(struct maildir_mailbox *mbox, const char *path,
++			void *context __attr_unused__)
++{
++	struct stat st;
++
++	if (lstat(path, &st) == 0 && (st.st_mode & S_IFLNK) != 0) {
++		/* most likely a symlink pointing to a non-existing file */
++		mail_storage_set_critical(STORAGE(mbox->storage),
++			"Maildir: Symlink destination doesn't exist: %s", path);
++		return -2;
++	} else {
++		mail_storage_set_critical(STORAGE(mbox->storage),
++			"maildir_file_do(%s): Filename keeps changing", path);
++		return -1;
++	}
++}
++
+ int maildir_file_do(struct maildir_mailbox *mbox, uint32_t uid,
+ 		    maildir_file_do_func *func, void *context)
+ {
+@@ -58,11 +75,8 @@ int maildir_file_do(struct maildir_mailb
+ 		ret = maildir_file_do_try(mbox, uid, func, context);
+ 	}
+ 
+-	if (i == 10) {
+-		ret = -1;
+-		mail_storage_set_critical(STORAGE(mbox->storage),
+-			"maildir_file_do(%s) racing", mbox->path);
+-	}
++	if (i == 10)
++		ret = maildir_file_do_try(mbox, uid, do_racecheck, context);
+ 
+ 	return ret == -2 ? 0 : ret;
+ }
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/lib-storage/index/mbox/mbox-save.c
+--- a/src/lib-storage/index/mbox/mbox-save.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/lib-storage/index/mbox/mbox-save.c	Sun May 27 16:45:26 2007 +0300
+@@ -48,6 +48,7 @@ struct mbox_save_context {
+ 	char last_char;
+ 
+ 	struct mbox_md5_context *mbox_md5_ctx;
++	unsigned int x_delivery_id_pos;
+ 
+ 	unsigned int synced:1;
+ 	unsigned int failed:1;
+@@ -304,12 +305,6 @@ mbox_save_init_file(struct mbox_save_con
+ 			   syncing. */
+ 			mbox_save_init_sync(t);
+ 		}
+-
+-		if (mbox_seek_to_end(ctx, &ctx->append_offset) < 0)
+-			return -1;
+-
+-		ctx->output = o_stream_create_file(mbox->mbox_fd, default_pool,
+-						   0, FALSE);
+ 	}
+ 
+ 	if (!ctx->synced && want_mail) {
+@@ -319,6 +314,14 @@ mbox_save_init_file(struct mbox_save_con
+ 		mbox_save_init_sync(t);
+ 	}
+ 
++	/* the syncing above could have changed the append offset */
++	if (ctx->append_offset == (uoff_t)-1) {
++		if (mbox_seek_to_end(ctx, &ctx->append_offset) < 0)
++			return -1;
++
++		ctx->output = o_stream_create_file(mbox->mbox_fd, default_pool,
++						   0, FALSE);
++	}
+ 	return 0;
+ }
+ 
+@@ -368,6 +371,7 @@ static void mbox_save_x_delivery_id(stru
+ 	md5_get_digest(buf->data, buf->used, md5_result);
+ 
+ 	str_append(ctx->headers, "X-Delivery-ID: ");
++	ctx->x_delivery_id_pos = str_len(ctx->headers);
+ 	base64_encode(md5_result, sizeof(md5_result), ctx->headers);
+ 	str_append_c(ctx->headers, '\n');
+ 	t_pop();
+@@ -413,6 +417,8 @@ int mbox_save_init(struct mailbox_transa
+ 	save_flags = (flags & ~MAIL_RECENT) | MAIL_RECENT;
+ 	str_truncate(ctx->headers, 0);
+ 	if (ctx->synced) {
++		if (ctx->mbox->mbox_save_md5)
++			ctx->mbox_md5_ctx = mbox_md5_init();
+ 		if (ctx->output->offset == 0) {
+ 			/* writing the first mail. Insert X-IMAPbase as well. */
+ 			str_printfa(ctx->headers, "X-IMAPbase: %u %010u\n",
+@@ -477,8 +483,6 @@ int mbox_save_init(struct mailbox_transa
+ 			 MAIL_STORAGE_FLAG_SAVE_CRLF) != 0 ?
+ 			o_stream_create_crlf(default_pool, ctx->output) :
+ 			o_stream_create_lf(default_pool, ctx->output);
+-		if (ctx->mbox->mbox_save_md5 && ctx->synced)
+-			ctx->mbox_md5_ctx = mbox_md5_init();
+ 	}
+ 
+ 	*ctx_r = &ctx->ctx;
+@@ -550,6 +554,22 @@ int mbox_save_continue(struct mail_save_
+ 	if (ctx->mbox_md5_ctx) {
+ 		unsigned char hdr_md5_sum[16];
+ 
++		if (ctx->x_delivery_id_pos != 0) {
++			struct message_header_line hdr;
++			const unsigned char *p;
++
++			memset(&hdr, 0, sizeof(hdr));
++			hdr.name = "X-Delivery-ID";
++			hdr.name_len = strlen(hdr.name);
++			hdr.middle = (const unsigned char *)": ";
++			hdr.middle_len = 2;
++			hdr.value = hdr.full_value = str_data(ctx->headers) +
++				ctx->x_delivery_id_pos;
++
++			for (p = hdr.value; *p != '\n'; p++) ;
++			hdr.value_len = hdr.full_value_len = p - hdr.value;
++			mbox_md5_continue(ctx->mbox_md5_ctx, &hdr);
++		}
+ 		mbox_md5_finish(ctx->mbox_md5_ctx, hdr_md5_sum);
+ 		mail_index_update_ext(ctx->trans, ctx->seq,
+ 				      ctx->mbox->ibox.md5hdr_ext_idx,
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/lib/file-dotlock.c
+--- a/src/lib/file-dotlock.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/lib/file-dotlock.c	Sun May 27 16:45:26 2007 +0300
+@@ -521,7 +521,12 @@ int file_dotlock_create(const struct dot
+ 	/* some NFS implementations may have used cached mtime in previous
+ 	   fstat() call. Check again to avoid "dotlock was modified" errors. */
+ 	if (stat(lock_path, &st) < 0) {
+-		i_error("stat(%s) failed: %m", lock_path);
++		if (errno != ENOENT)
++			i_error("stat(%s) failed: %m", lock_path);
++		else {
++			i_error("dotlock %s was immediately deleted under us",
++				lock_path);
++		}
+                 file_dotlock_free(dotlock);
+ 		t_pop();
+ 		return -1;
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/lib/ioloop.c
+--- a/src/lib/ioloop.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/lib/ioloop.c	Sun May 27 16:45:26 2007 +0300
+@@ -237,10 +237,13 @@ void io_loop_handle_timeouts(struct iolo
+ 		if (diff > IOLOOP_MAX_TIME_BACKWARDS_SLEEP) {
+ 			i_fatal("Time just moved backwards by %ld seconds. "
+ 				"This might cause a lot of problems, "
+-				"so I'll just kill myself now.", (long)diff);
++				"so I'll just kill myself now. "
++				"http://wiki.dovecot.org/TimeMovedBackwards",
++				(long)diff);
+ 		} else {
+ 			i_error("Time just moved backwards by %ld seconds. "
+-				"I'll sleep now until we're back in present.",
++				"I'll sleep now until we're back in present. "
++				"http://wiki.dovecot.org/TimeMovedBackwards",
+ 				(long)diff);
+ 			/* Sleep extra second to make sure usecs also grows. */
+ 			diff++;
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/lib/mountpoint.c
+--- a/src/lib/mountpoint.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/lib/mountpoint.c	Sun May 27 16:45:26 2007 +0300
+@@ -58,7 +58,11 @@ int mountpoint_get(const char *path, poo
+ 
+ 	point_r->device_path = p_strdup(pool, buf.f_mntfromname);
+ 	point_r->mount_path = p_strdup(pool, buf.f_mntonname);
++#ifdef __osf__ /* Tru64 */
++	point_r->type = p_strdup(pool, getvfsbynumber(buf.f_type));
++#else
+ 	point_r->type = p_strdup(pool, buf.f_fstypename);
++#endif
+ 	point_r->block_size = buf.f_bsize;
+ 	return 1;
+ #else
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/master/main.c
+--- a/src/master/main.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/master/main.c	Sun May 27 16:45:26 2007 +0300
+@@ -218,6 +218,9 @@ static void sigchld_handler(int signo __
+ 					i_error("unknown child %s exited "
+ 						"successfully", dec2str(pid));
+ 				}
++			} else if (status == 1 &&
++				   process_type == PROCESS_TYPE_SSL_PARAM) {
++				/* kludgy. hide this failure. */
+ 			} else {
+ 				msg = get_exit_status_message(status);
+ 				msg = msg == NULL ? "" :
+@@ -241,7 +244,7 @@ static void sigchld_handler(int signo __
+ 			mail_process_destroyed(pid);
+ 			break;
+ 		case PROCESS_TYPE_SSL_PARAM:
+-			ssl_parameter_process_destroyed(pid);
++			ssl_parameter_process_destroyed(abnormal_exit);
+ 			break;
+ 		case PROCESS_TYPE_DICT:
+ 			dict_process_restart();
+@@ -822,7 +825,7 @@ int main(int argc, char *argv[])
+ 	if (dump_config) {
+ 		/* print the config file path before parsing it, so in case
+ 		   of errors it's still shown */
+-		printf("# %s\n", configfile);
++		printf("# "VERSION": %s\n", configfile);
+ 	}
+ 
+ 	/* read and verify settings before forking */
+@@ -830,7 +833,7 @@ int main(int argc, char *argv[])
+ 	master_settings_init();
+ 	if (!master_settings_read(configfile, exec_protocol != NULL,
+ 				  dump_config))
+-		exit(FATAL_DEFAULT);
++		i_fatal("Invalid configuration in %s", configfile);
+ 	t_pop();
+ 
+ 	if (dump_config) {
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/master/master-settings.c
+--- a/src/master/master-settings.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/master/master-settings.c	Sun May 27 16:45:26 2007 +0300
+@@ -14,6 +14,7 @@
+ 
+ #include <stdio.h>
+ #include <stddef.h>
++#include <stdlib.h>
+ #include <dirent.h>
+ #include <unistd.h>
+ #include <fcntl.h>
+@@ -623,6 +624,12 @@ static bool settings_verify(struct setti
+ 	if (!get_login_uid(set))
+ 		return FALSE;
+ 
++	if (set->protocol == MAIL_PROTOCOL_POP3 &&
++	    *set->pop3_uidl_format == '\0') {
++		i_error("POP3 enabled but pop3_uidl_format not set");
++		return FALSE;
++	}
++
+ 	if (access(t_strcut(set->mail_executable, ' '), X_OK) < 0) {
+ 		i_error("Can't use mail executable %s: %m",
+ 			t_strcut(set->mail_executable, ' '));
+@@ -813,6 +820,46 @@ static bool settings_fix(struct settings
+ 	if (!settings_verify(set))
+ 		return FALSE;
+ 	return nofixes ? TRUE : settings_do_fixes(set);
++}
++
++static int pid_file_is_running(const char *path)
++{
++	char buf[32];
++	int fd;
++	ssize_t ret;
++
++	fd = open(path, O_RDONLY);
++	if (fd == -1) {
++		if (errno == ENOENT)
++			return 0;
++		i_error("open(%s) failed: %m", path);
++		return -1;
++	}
++
++	ret = read(fd, buf, sizeof(buf));
++	if (ret <= 0) {
++		if (ret == 0)
++			i_error("Empty PID file in %s, overriding", path);
++		else
++			i_error("read(%s) failed: %m", path);
++	} else {
++		pid_t pid;
++
++		if (buf[ret-1] == '\n')
++			ret--;
++		buf[ret] = '\0';
++		pid = atoi(buf);
++		if (pid == getpid() || (kill(pid, 0) < 0 && errno == ESRCH)) {
++			/* doesn't exist */
++			ret = 0;
++		} else {
++			i_error("Dovecot is already running with PID %s "
++				"(read from %s)", buf, path);
++			ret = 1;
++		}
++	}
++	(void)close(fd);
++	return ret;
+ }
+ 
+ static struct auth_settings *
+@@ -1290,6 +1337,16 @@ bool master_settings_read(const char *pa
+ 	if (ctx.root->next != NULL)
+ 		ctx.root = ctx.root->next;
+ 
++	if (!nochecks && !nofixes) {
++		ctx.root->defaults = settings_is_active(ctx.root->imap) ?
++			ctx.root->imap : ctx.root->pop3;
++
++		path = t_strconcat(ctx.root->defaults->base_dir,
++				   "/master.pid", NULL);
++		if (pid_file_is_running(path) != 0)
++			return FALSE;
++	}
++
+ 	prev = NULL;
+ 	for (server = ctx.root; server != NULL; server = server->next) {
+ 		if ((*server->imap->protocols == '\0' ||
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/master/ssl-init-main.c
+--- a/src/master/ssl-init-main.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/master/ssl-init-main.c	Sun May 27 16:45:26 2007 +0300
+@@ -2,6 +2,7 @@
+ 
+ #include "lib.h"
+ #include "lib-signals.h"
++#include "file-lock.h"
+ #include "randgen.h"
+ #include "ssl-init.h"
+ 
+@@ -11,17 +12,16 @@
+ #include <sys/stat.h>
+ 
+ #ifdef HAVE_SSL
+-static void generate_parameters_file(const char *fname)
++static int generate_parameters_file(const char *fname)
+ {
+ 	const char *temp_fname;
+ 	mode_t old_mask;
+-	int fd;
++	int fd, ret;
+ 
+ 	temp_fname = t_strconcat(fname, ".tmp", NULL);
+-	(void)unlink(temp_fname);
+ 
+ 	old_mask = umask(0);
+-	fd = open(temp_fname, O_WRONLY | O_CREAT | O_EXCL, 0644);
++	fd = open(temp_fname, O_WRONLY | O_CREAT, 0644);
+ 	umask(old_mask);
+ 
+ 	if (fd == -1) {
+@@ -29,25 +29,40 @@ static void generate_parameters_file(con
+ 			temp_fname);
+ 	}
+ 
++	/* If multiple dovecot instances are running, only one of them needs
++	   to regenerate this file. */
++	ret = file_try_lock(fd, F_WRLCK);
++	if (ret < 0)
++		i_fatal("file_try_lock(%s) failed: %m", temp_fname);
++	if (ret == 0) {
++		/* someone else is writing this */
++		return -1;
++	}
++	if (ftruncate(fd, 0) < 0)
++		i_fatal("ftruncate(%s) failed: %m", temp_fname);
++
+ 	_ssl_generate_parameters(fd, temp_fname);
+ 
++	if (rename(temp_fname, fname) < 0)
++		i_fatal("rename(%s, %s) failed: %m", temp_fname, fname);
+ 	if (close(fd) < 0)
+ 		i_fatal("close(%s) failed: %m", temp_fname);
+ 
+-	if (rename(temp_fname, fname) < 0)
+-		i_fatal("rename(%s, %s) failed: %m", temp_fname, fname);
+-
+ 	i_info("SSL parameters regeneration completed");
++	return 0;
+ }
+ #else
+-static void generate_parameters_file(const char *fname __attr_unused__)
++static int generate_parameters_file(const char *fname __attr_unused__)
+ {
+ 	i_fatal("Dovecot built without SSL support");
++	return -1;
+ }
+ #endif
+ 
+ int main(int argc, char *argv[])
+ {
++	int ret = 0;
++
+ 	lib_init();
+ 	i_set_failure_internal();
+ 
+@@ -55,9 +70,10 @@ int main(int argc, char *argv[])
+ 		i_fatal("Usage: ssl-build-param <path>");
+ 
+ 	random_init();
+-	generate_parameters_file(argv[1]);
++	if (generate_parameters_file(argv[1]) < 0)
++		ret = 1;
+ 
+ 	random_deinit();
+ 	lib_deinit();
+-	return 0;
++	return ret;
+ }
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/master/ssl-init.c
+--- a/src/master/ssl-init.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/master/ssl-init.c	Sun May 27 16:45:26 2007 +0300
+@@ -13,6 +13,7 @@
+ #include <stdlib.h>
+ #include <unistd.h>
+ #include <fcntl.h>
++#include <utime.h>
+ #include <sys/stat.h>
+ 
+ static struct timeout *to;
+@@ -60,11 +61,14 @@ static void start_generate_process(const
+ 	i_fatal_status(FATAL_EXEC, "execv(%s) failed: %m", binpath);
+ }
+ 
+-void ssl_parameter_process_destroyed(pid_t pid __attr_unused__)
++void ssl_parameter_process_destroyed(bool abnormal_exit)
+ {
+-	if (file_copy(SSL_PARAMETERS_PERM_PATH, generating_path, TRUE) <= 0) {
+-		i_error("file_copy(%s, %s) failed: %m",
+-			SSL_PARAMETERS_PERM_PATH, generating_path);
++	if (!abnormal_exit) {
++		if (file_copy(SSL_PARAMETERS_PERM_PATH,
++			      generating_path, TRUE) <= 0) {
++			i_error("file_copy(%s, %s) failed: %m",
++				SSL_PARAMETERS_PERM_PATH, generating_path);
++		}
+ 	}
+ 	i_free_and_null(generating_path);
+ }
+@@ -72,33 +76,42 @@ static bool check_parameters_file_set(st
+ static bool check_parameters_file_set(struct settings *set)
+ {
+ 	const char *path;
+-	struct stat st;
++	struct stat st, st2;
+ 	time_t regen_time;
+ 
+ 	if (set->ssl_disable)
+ 		return TRUE;
+ 
+ 	path = t_strconcat(set->login_dir, "/"SSL_PARAMETERS_FILENAME, NULL);
+-	if (lstat(path, &st) < 0) {
++	if (stat(path, &st) < 0) {
+ 		if (errno != ENOENT) {
+-			i_error("lstat() failed for SSL parameters file %s: %m",
++			i_error("stat() failed for SSL parameters file %s: %m",
+ 				path);
+ 			return TRUE;
+ 		}
+ 
+-		/* try to copy the permanent parameters file here if possible */
+-		if (file_copy(SSL_PARAMETERS_PERM_PATH, path, TRUE) > 0) {
+-			if (stat(path, &st) < 0) {
+-				i_error("stat(%s) failed: %m", path);
+-				st.st_mtime = 0;
+-			}
+-		} else {
+-			st.st_mtime = 0;
+-		}
++		st.st_mtime = 0;
+ 	} else if (st.st_size == 0) {
+ 		/* broken, delete it (mostly for backwards compatibility) */
+ 		st.st_mtime = 0;
+ 		(void)unlink(path);
++	}
++
++	if (stat(SSL_PARAMETERS_PERM_PATH, &st2) == 0 &&
++	    st.st_mtime < st2.st_mtime) {
++		/* permanent parameters file has changed. use it. */
++		if (file_copy(SSL_PARAMETERS_PERM_PATH, path, TRUE) > 0) {
++			if (st.st_ino != st2.st_ino) {
++				/* preserve the mtime */
++				struct utimbuf ut;
++
++				ut.actime = ut.modtime = st2.st_mtime;
++				if (utime(path, &ut) < 0)
++					i_error("utime(%s) failed: %m", path);
++			}
++			if (stat(path, &st) < 0)
++				st.st_mtime = 0;
++		}
+ 	}
+ 
+ 	/* make sure it's new enough, it's not 0 sized, and the permissions
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/master/ssl-init.h
+--- a/src/master/ssl-init.h	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/master/ssl-init.h	Sun May 27 16:45:26 2007 +0300
+@@ -3,7 +3,7 @@
+ 
+ #define SSL_PARAMETERS_FILENAME "ssl-parameters.dat"
+ 
+-void ssl_parameter_process_destroyed(pid_t pid);
++void ssl_parameter_process_destroyed(bool abnormal_exit);
+ 
+ void ssl_check_parameters_file(void);
+ void _ssl_generate_parameters(int fd, const char *fname);
+diff -r 96fb9dad0a0d -r 2b462faf9867 src/pop3/main.c
+--- a/src/pop3/main.c	Fri Apr 13 14:41:56 2007 +0300
++++ b/src/pop3/main.c	Sun May 27 16:45:26 2007 +0300
+@@ -228,7 +228,7 @@ static int main_init(void)
+ 
+ 	uidl_format = getenv("POP3_UIDL_FORMAT");
+ 	if (uidl_format == NULL || *uidl_format == '\0')
+-		i_fatal("Set pop3_uidl_format in config file");
++		i_fatal("You must configure pop3_uidl_format in dovecot.conf");
+ 	logout_format = getenv("POP3_LOGOUT_FORMAT");
+ 	if (logout_format == NULL)
+ 		logout_format = "top=%t/%p, retr=%r/%b, del=%d/%m, size=%s";
+
