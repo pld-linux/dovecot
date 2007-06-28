@@ -3,14 +3,14 @@
 %bcond_without	ldap	# without LDAP auth
 %bcond_without	mysql	# without MySQL auth
 %bcond_without	pgsql	# without PostgreSQL auth
-%bcond_without	sqlite	# without SQLite3 auth
+%bcond_without	sqlite	# without  SQLite3 auth
 %bcond_without	sasl	# without SASL auth
 #
 Summary:	IMAP and POP3 server written with security primarily in mind
-Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany gÅ‚Ã³wnie z myÅ›lÄ… o bezpieczeÅ„stwie
+Summary(pl):	Serwer IMAP i POP3 pisany g³ównie z my¶l± o bezpieczeñstwie
 Name:		dovecot
 Version:	1.0.1
-Release:	1
+Release:	2
 License:	LGPL v2.1 and MIT
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/%{name}-%{version}.tar.gz
@@ -19,12 +19,12 @@ Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
 Patch0:		%{name}-config.patch
-#Patch1:		%{name}-pop3-undeleted.patch
+Patch1:		%{name}-branch.diff
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
-BuildRequires:	krb5-devel
+BuildRequires:	heimdal-devel
 BuildRequires:	gettext-devel
 BuildRequires:	libtool
 %{?with_mysql:BuildRequires:	mysql-devel}
@@ -79,40 +79,42 @@ Status:
 - Maildir++ quota is supported, bad hard filesystem quota can be
   problematic
 
-%description -l pl.UTF-8
-Dovecot to serwer IMAP i POP3 dla systemÃ³w linuksowych/uniksowych,
-pisany gÅ‚Ã³wnie z myÅ›lÄ… o bezpieczeÅ„stwie. ChociaÅ¼ jest pisany w C,
-uÅ¼ywa kilku technik kodowania zapobiegajÄ…cych wiÄ™kszoÅ›ci popularnych
-puÅ‚apek.
+%description -l pl
+Dovecot to serwer IMAP i POP3 dla systemów linuksowych/uniksowych,
+pisany g³ównie z my¶l± o bezpieczeñstwie. Chocia¿ jest pisany w C,
+u¿ywa kilku technik kodowania zapobiegaj±cych wiêkszo¶ci popularnych
+pu³apek.
 
-Dovecot moÅ¼e dziaÅ‚aÄ‡ ze standardowymi formatami mbox i maildir, jest
-caÅ‚kowicie kompatybilny z serwerami UW-IMAP i Courier IMAP, a takÅ¼e z
-klientami pocztowymi bezpoÅ›rednio dostajÄ…cymi siÄ™ do skrzynek.
-Planowana jest takÅ¼e obsÅ‚uga przechowywania listÃ³w w bazach SQL.
+Dovecot mo¿e dzia³aæ ze standardowymi formatami mbox i maildir, jest
+ca³kowicie kompatybilny z serwerami UW-IMAP i Courier IMAP, a tak¿e z
+klientami pocztowymi bezpo¶rednio dostaj±cymi siê do skrzynek.
+Planowana jest tak¿e obs³uga przechowywania listów w bazach SQL.
 
-Dovecot jest Å‚atwy do skonfigurowania i nie wymaga specjalnego
-nadzoru. Wystarczy tylko doprowadziÄ‡ do dziaÅ‚ania uwierzytelnianie -
-jeÅ›li uÅ¼ytkownicy sÄ… w /etc/passwd, to wÅ‚aÅ›ciwie nie trzeba nic
-zmieniaÄ‡.
+Dovecot jest ³atwy do skonfigurowania i nie wymaga specjalnego
+nadzoru. Wystarczy tylko doprowadziæ do dzia³ania uwierzytelnianie -
+je¶li u¿ytkownicy s± w /etc/passwd, to w³a¶ciwie nie trzeba nic
+zmieniaæ.
 
-Dovecot powinien byÄ‡ w miarÄ™ szybki, gÅ‚Ã³wnie z powodu plikÃ³w
+Dovecot powinien byæ w miarê szybki, g³ównie z powodu plików
 indeksowych utrzymywanych przez serwer; zamiast potrzeby skanowania
-wszystkich danych w skrzynce, Dovecot moÅ¼e maÅ‚ym kosztem uzyskaÄ‡
-wiÄ™kszoÅ›Ä‡ potrzebnych informacji z indeksu.
+wszystkich danych w skrzynce, Dovecot mo¿e ma³ym kosztem uzyskaæ
+wiêkszo¶æ potrzebnych informacji z indeksu.
 
 Stan:
-- powinien byÄ‡ gotowy do uÅ¼ycia ze zwykÅ‚ymi klientami IMAP
-- peÅ‚na obsÅ‚uga IMAP4rev1 i POP3
-- obsÅ‚uga rozszerzeÅ„ THREAD, SORT i IDLE, wymaganych przez wiele
+- powinien byæ gotowy do u¿ycia ze zwyk³ymi klientami IMAP
+- pe³na obs³uga IMAP4rev1 i POP3
+- obs³uga rozszerzeñ THREAD, SORT i IDLE, wymaganych przez wiele
   webmaili IMAP
-- obsÅ‚uga IPv6
-- peÅ‚na obsÅ‚uga TLS/SSL
-- quota Maildir++ jest obsÅ‚ugiwana, ale twarda quota na systemach
-  plikÃ³w moÅ¼e byÄ‡ problematyczna
+- obs³uga IPv6
+- pe³na obs³uga TLS/SSL
+- quota Maildir++ jest obs³ugiwana, ale twarda quota na systemach
+  plików mo¿e byæ problematyczna
 
 %prep
 %setup -q
 %patch0 -p1
+%patch1 -p1
+
 %{__sed} -i 's,/usr/lib/dovecot,%{_libdir}/dovecot,g' dovecot-example.conf
 
 %build
