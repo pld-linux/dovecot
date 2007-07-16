@@ -7,24 +7,23 @@
 %bcond_without	sasl	# without SASL auth
 #
 Summary:	IMAP and POP3 server written with security primarily in mind
-Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany g≈Ç√≥wnie z my≈õlƒÖ o bezpiecze≈Ñstwie
+Summary(pl):	Serwer IMAP i POP3 pisany g≥Ûwnie z my∂l± o bezpieczeÒstwie
 Name:		dovecot
-Version:	1.0.rc28
-Release:	2
+Version:	1.0.2
+Release:	1
 License:	LGPL v2.1 and MIT
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/%{name}-%{version}.tar.gz
-# Source0-md5:	e6fd617f3210f914815186c176796881
+# Source0-md5:	769f0dd2750e7de521de3396999a09e5
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
 Patch0:		%{name}-config.patch
-#Patch1:		%{name}-pop3-undeleted.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
-BuildRequires:	krb5-devel
+BuildRequires:	heimdal-devel
 BuildRequires:	gettext-devel
 BuildRequires:	libtool
 %{?with_mysql:BuildRequires:	mysql-devel}
@@ -79,41 +78,41 @@ Status:
 - Maildir++ quota is supported, bad hard filesystem quota can be
   problematic
 
-%description -l pl.UTF-8
-Dovecot to serwer IMAP i POP3 dla system√≥w linuksowych/uniksowych,
-pisany g≈Ç√≥wnie z my≈õlƒÖ o bezpiecze≈Ñstwie. Chocia≈º jest pisany w C,
-u≈ºywa kilku technik kodowania zapobiegajƒÖcych wiƒôkszo≈õci popularnych
-pu≈Çapek.
+%description -l pl
+Dovecot to serwer IMAP i POP3 dla systemÛw linuksowych/uniksowych,
+pisany g≥Ûwnie z my∂l± o bezpieczeÒstwie. Chociaø jest pisany w C,
+uøywa kilku technik kodowania zapobiegaj±cych wiÍkszo∂ci popularnych
+pu≥apek.
 
-Dovecot mo≈ºe dzia≈Çaƒá ze standardowymi formatami mbox i maildir, jest
-ca≈Çkowicie kompatybilny z serwerami UW-IMAP i Courier IMAP, a tak≈ºe z
-klientami pocztowymi bezpo≈õrednio dostajƒÖcymi siƒô do skrzynek.
-Planowana jest tak≈ºe obs≈Çuga przechowywania list√≥w w bazach SQL.
+Dovecot moøe dzia≥aÊ ze standardowymi formatami mbox i maildir, jest
+ca≥kowicie kompatybilny z serwerami UW-IMAP i Courier IMAP, a takøe z
+klientami pocztowymi bezpo∂rednio dostaj±cymi siÍ do skrzynek.
+Planowana jest takøe obs≥uga przechowywania listÛw w bazach SQL.
 
-Dovecot jest ≈Çatwy do skonfigurowania i nie wymaga specjalnego
-nadzoru. Wystarczy tylko doprowadziƒá do dzia≈Çania uwierzytelnianie -
-je≈õli u≈ºytkownicy sƒÖ w /etc/passwd, to w≈Ça≈õciwie nie trzeba nic
-zmieniaƒá.
+Dovecot jest ≥atwy do skonfigurowania i nie wymaga specjalnego
+nadzoru. Wystarczy tylko doprowadziÊ do dzia≥ania uwierzytelnianie -
+je∂li uøytkownicy s± w /etc/passwd, to w≥a∂ciwie nie trzeba nic
+zmieniaÊ.
 
-Dovecot powinien byƒá w miarƒô szybki, g≈Ç√≥wnie z powodu plik√≥w
+Dovecot powinien byÊ w miarÍ szybki, g≥Ûwnie z powodu plikÛw
 indeksowych utrzymywanych przez serwer; zamiast potrzeby skanowania
-wszystkich danych w skrzynce, Dovecot mo≈ºe ma≈Çym kosztem uzyskaƒá
-wiƒôkszo≈õƒá potrzebnych informacji z indeksu.
+wszystkich danych w skrzynce, Dovecot moøe ma≥ym kosztem uzyskaÊ
+wiÍkszo∂Ê potrzebnych informacji z indeksu.
 
 Stan:
-- powinien byƒá gotowy do u≈ºycia ze zwyk≈Çymi klientami IMAP
-- pe≈Çna obs≈Çuga IMAP4rev1 i POP3
-- obs≈Çuga rozszerze≈Ñ THREAD, SORT i IDLE, wymaganych przez wiele
+- powinien byÊ gotowy do uøycia ze zwyk≥ymi klientami IMAP
+- pe≥na obs≥uga IMAP4rev1 i POP3
+- obs≥uga rozszerzeÒ THREAD, SORT i IDLE, wymaganych przez wiele
   webmaili IMAP
-- obs≈Çuga IPv6
-- pe≈Çna obs≈Çuga TLS/SSL
-- quota Maildir++ jest obs≈Çugiwana, ale twarda quota na systemach
-  plik√≥w mo≈ºe byƒá problematyczna
+- obs≥uga IPv6
+- pe≥na obs≥uga TLS/SSL
+- quota Maildir++ jest obs≥ugiwana, ale twarda quota na systemach
+  plikÛw moøe byÊ problematyczna
 
 %prep
 %setup -q
 %patch0 -p1
-#%patch1 -p1
+
 %{__sed} -i 's,/usr/lib/dovecot,%{_libdir}/dovecot,g' dovecot-example.conf
 
 %build
@@ -187,7 +186,7 @@ fi
 %files
 %defattr(644,root,root,755)
 # COPYING contains some notes, not actual LGPL text
-%doc AUTHORS COPYING ChangeLog NEWS README TODO doc/*.txt doc/*.c*f
+%doc AUTHORS COPYING ChangeLog NEWS README TODO doc/*.txt doc/*.c*f doc/wiki/*.txt
 %attr(755,root,root) %{_sbindir}/%{name}
 %attr(755,root,root) %{_sbindir}/%{name}pw
 %attr(750,root,root) %dir %{_sysconfdir}/%{name}
