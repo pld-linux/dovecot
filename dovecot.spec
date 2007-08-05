@@ -13,7 +13,7 @@ Version:	1.0.3
 Release:	1
 License:	LGPL v2.1 and MIT
 Group:		Networking/Daemons
-Source0:	http://dovecot.org/releases/%{name}-%{version}.tar.gz
+Source0:	http://dovecot.org/releases/1.0/%{name}-%{version}.tar.gz
 # Source0-md5:	1d7cc3c4964789554553e7e4ea3f82b4
 Source1:	%{name}.pamd
 Source2:	%{name}.init
