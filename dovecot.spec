@@ -24,7 +24,7 @@ URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
-BuildRequires:	krb5-devel
+#BuildRequires:	krb5-devel
 BuildRequires:	gettext-devel
 BuildRequires:	libtool
 %{?with_mysql:BuildRequires:	mysql-devel}
@@ -110,6 +110,14 @@ Stan:
 - quota Maildir++ jest obsługiwana, ale twarda quota na systemach
   plików może być problematyczna
 
+%package devel
+Summary: Libraries and headers for Dovecot
+Group: Development/Libraries
+Requires: %name = %{version}-%{release}
+
+%description devel
+This package contains development files for linking against %{name}.
+
 %prep
 %setup -q
 %patch0 -p1
@@ -156,6 +164,22 @@ install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
 
 touch $RPM_BUILD_ROOT/etc/security/blacklist.imap
 
+# devel 
+for folder in deliver imap lib lib-imap lib-mail lib-storage; do
+    mkdir -p $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder
+    install -p -m644 src/$folder/*.h $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder/
+done
+
+for folder in lib lib-imap lib-mail lib-storage; do
+    mkdir -p $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins/$folder
+    install -p -m644 src/$folder/*.a $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins/$folder/
+done
+		
+for f in dovecot-config config.h stamp.h; do
+    install -p -m644 $f $RPM_BUILD_ROOT%{_includedir}/%{name}
+done
+		    
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -197,7 +221,41 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.imap
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{name}
 %attr(754,root,root) /etc/rc.d/init.d/%{name}
-%attr(755,root,root) %{_libdir}/%{name}
+#Files :P
+%dir %{_libdir}/%{name}/
+%attr(755,root,root) %{_libdir}/%{name}/checkpassword-reply
+%attr(755,root,root) %{_libdir}/%{name}/deliver
+%attr(755,root,root) %{_libdir}/%{name}/dict
+%attr(755,root,root) %{_libdir}/%{name}/dovecot-auth
+%attr(755,root,root) %{_libdir}/%{name}/gdbhelper
+%attr(755,root,root) %{_libdir}/%{name}/idxview
+%attr(755,root,root) %{_libdir}/%{name}/imap
+%attr(755,root,root) %{_libdir}/%{name}/imap-login
+%attr(755,root,root) %{_libdir}/%{name}/logview
+%attr(755,root,root) %{_libdir}/%{name}/pop3
+%attr(755,root,root) %{_libdir}/%{name}/pop3-login
+%attr(755,root,root) %{_libdir}/%{name}/rawlog
+%attr(755,root,root) %{_libdir}/%{name}/ssl-build-param
+%dir %{_libdir}/%{name}/plugins/
+%attr(755,root,root) %{_libdir}/%{name}/plugins/*.so
+%dir %{_libdir}/%{name}/plugins/imap
+%attr(755,root,root)%{_libdir}/%{name}/plugins/imap/*.so
+%dir %{_libdir}/%{name}/plugins/lda
+%attr(755,root,root) %{_libdir}/%{name}/plugins/lda/*.so
+%dir %{_libdir}/%{name}/plugins/pop3
+%attr(755,root,root) %{_libdir}/%{name}/plugins/pop3/*.so
 %dir /var/lib/dovecot
 %dir /var/run/dovecot
 %attr(750,root,dovecot) %dir /var/run/dovecot/login
+
+%files devel
+%defattr(644,root,root,755)
+%{_libdir}/%{name}/plugins/*.a
+%attr(755,root,root) %{_libdir}/%{name}/plugins/*.la
+%{_libdir}/%{name}/plugins/imap/*.a
+%attr(755,root,root) %{_libdir}/%{name}/plugins/imap/*.la
+%{_libdir}/%{name}/plugins/lib/*.a
+%{_libdir}/%{name}/plugins/lib-imap/*.a
+%{_libdir}/%{name}/plugins/lib-mail/*.a
+%{_libdir}/%{name}/plugins/lib-storage/*.a
+%{_includedir}/%{name}
