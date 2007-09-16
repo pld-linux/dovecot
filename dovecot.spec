@@ -254,8 +254,12 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/plugins/*.la
 %{_libdir}/%{name}/plugins/imap/*.a
 %attr(755,root,root) %{_libdir}/%{name}/plugins/imap/*.la
+%dir %{_libdir}/%{name}/plugins/lib
 %{_libdir}/%{name}/plugins/lib/*.a
+%dir %{_libdir}/%{name}/plugins/lib-imap
 %{_libdir}/%{name}/plugins/lib-imap/*.a
+%dir %{_libdir}/%{name}/plugins/lib-mail
 %{_libdir}/%{name}/plugins/lib-mail/*.a
+%dir %{_libdir}/%{name}/plugins/lib-storage
 %{_libdir}/%{name}/plugins/lib-storage/*.a
 %{_includedir}/%{name}
