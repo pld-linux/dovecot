@@ -24,8 +24,8 @@ URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
-#BuildRequires:	krb5-devel
 BuildRequires:	gettext-devel
+#BuildRequires:	krb5-devel
 BuildRequires:	libtool
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.0}
@@ -111,9 +111,9 @@ Stan:
   plików może być problematyczna
 
 %package devel
-Summary: Libraries and headers for Dovecot
-Group: Development/Libraries
-Requires: %name = %{version}-%{release}
+Summary:	Libraries and headers for Dovecot
+Group:		Development/Libraries
+Requires:	%name = %{version}-%{release}
 
 %description devel
 This package contains development files for linking against %{name}.
@@ -164,21 +164,21 @@ install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
 
 touch $RPM_BUILD_ROOT/etc/security/blacklist.imap
 
-# devel 
+# devel
 for folder in deliver imap lib lib-imap lib-mail lib-storage; do
-    mkdir -p $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder
+    install -d $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder
     install -p -m644 src/$folder/*.h $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder/
 done
 
 for folder in lib lib-imap lib-mail lib-storage; do
-    mkdir -p $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins/$folder
+    install -d $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins/$folder
     install -p -m644 src/$folder/*.a $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins/$folder/
 done
-		
+
 for f in dovecot-config config.h stamp.h; do
     install -p -m644 $f $RPM_BUILD_ROOT%{_includedir}/%{name}
 done
-		    
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
