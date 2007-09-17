@@ -113,7 +113,7 @@ Stan:
 %package devel
 Summary:	Libraries and headers for Dovecot
 Group:		Development/Libraries
-Requires:	%name = %{version}-%{release}
+Requires:	%{name} = %{version}-%{release}
 
 %description devel
 This package contains development files for linking against %{name}.
