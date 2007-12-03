@@ -9,23 +9,23 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	1.1.beta6
+Version:	1.1.beta10
 Release:	1
 License:	LGPL v2.1 and MIT
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/1.1/beta/%{name}-%{version}.tar.gz
-# Source0-md5:	fc13e68c9879aee215038af4ebbe25f4
+# Source0-md5:	4080def9546624ff9912d28116c96bf9
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
 Patch0:		%{name}-config.patch
-#Patch1:		%{name}-dspam-plugin.patch
+#Patch1: %{name}-dspam-plugin.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
-#BuildRequires:	krb5-devel
 BuildRequires:	gettext-devel
+#BuildRequires:	krb5-devel
 BuildRequires:	libtool
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.0}
@@ -44,8 +44,8 @@ Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
 Requires:	pam >= 0.79.0
 Provides:	group(dovecot)
-Provides:	user(dovecot)
 Provides:	imapdaemon
+Provides:	user(dovecot)
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -163,21 +163,21 @@ install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
 
 touch $RPM_BUILD_ROOT/etc/security/blacklist.imap
 
-# devel 
+# devel
 for folder in deliver imap lib lib-imap lib-mail lib-storage; do
-    mkdir -p $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder
+    install -d $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder
     install -p -m644 src/$folder/*.h $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder/
 done
 
 for folder in lib lib-imap lib-mail lib-storage; do
-    mkdir -p $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins/$folder
+    install -d $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins/$folder
     install -p -m644 src/$folder/*.a $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins/$folder/
 done
-		
+
 for f in dovecot-config config.h stamp.h; do
     install -p -m644 $f $RPM_BUILD_ROOT%{_includedir}/%{name}
 done
-		    
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -230,6 +230,9 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/idxview
 %attr(755,root,root) %{_libdir}/%{name}/imap
 %attr(755,root,root) %{_libdir}/%{name}/imap-login
+%attr(755,root,root) %{_libdir}/%{name}/convert-tool
+%attr(755,root,root) %{_libdir}/%{name}/expire-tool
+%attr(755,root,root) %{_libdir}/%{name}/listview
 %attr(755,root,root) %{_libdir}/%{name}/logview
 %attr(755,root,root) %{_libdir}/%{name}/pop3
 %attr(755,root,root) %{_libdir}/%{name}/pop3-login
