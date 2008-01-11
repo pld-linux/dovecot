@@ -11,7 +11,7 @@ Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeńst
 Name:		dovecot
 Version:	1.0.10
 Release:	1
-License:	LGPL v2.1 and MIT
+License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/1.0/%{name}-%{version}.tar.gz
 # Source0-md5:	c050fa2a7dae8984d432595e3e8183e1
@@ -138,7 +138,9 @@ touch config.rpath
 %{__autoheader}
 %{__automake}
 %configure \
+	--disable-static \
 	%{?debug:--enable-debug} \
+	--enable-header-install \
 	%{?with_ldap:--with-ldap} \
 	%{?with_mysql:--with-mysql} \
 	%{?with_pgsql:--with-pgsql} \
@@ -169,20 +171,16 @@ install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
 
 touch $RPM_BUILD_ROOT/etc/security/blacklist.imap
 
+rm -f $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins{,/imap}/*.la
+
 # devel
-for dir in deliver imap lib lib-imap lib-mail lib-storage; do
-	install -d $RPM_BUILD_ROOT%{_includedir}/%{name}/$dir
-	install -p -m644 src/$folder/*.h $RPM_BUILD_ROOT%{_includedir}/%{name}/$dir
-done
-
 for dir in lib lib-imap lib-mail lib-storage; do
-	install -d $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins/$dir
-	install -p -m644 src/$folder/*.a $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins/$dir
+	install -d $RPM_BUILD_ROOT%{_libdir}/%{name}-devel/src/$dir
+	install -p -m644 src/$dir/*.a $RPM_BUILD_ROOT%{_libdir}/%{name}-devel/src/$dir
 done
+ln -sf %{_includedir}/%{name}/dovecot-config $RPM_BUILD_ROOT%{_libdir}/%{name}-devel
 
-for f in dovecot-config config.h stamp.h; do
-	install -p -m644 $f $RPM_BUILD_ROOT%{_includedir}/%{name}
-done
+rm -r $RPM_BUILD_ROOT%{_docdir}/%{name}/wiki
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -253,16 +251,5 @@ fi
 
 %files devel
 %defattr(644,root,root,755)
-%{_libdir}/%{name}/plugins/*.a
-%attr(755,root,root) %{_libdir}/%{name}/plugins/*.la
-%{_libdir}/%{name}/plugins/imap/*.a
-%attr(755,root,root) %{_libdir}/%{name}/plugins/imap/*.la
-%dir %{_libdir}/%{name}/plugins/lib
-%{_libdir}/%{name}/plugins/lib/*.a
-%dir %{_libdir}/%{name}/plugins/lib-imap
-%{_libdir}/%{name}/plugins/lib-imap/*.a
-%dir %{_libdir}/%{name}/plugins/lib-mail
-%{_libdir}/%{name}/plugins/lib-mail/*.a
-%dir %{_libdir}/%{name}/plugins/lib-storage
-%{_libdir}/%{name}/plugins/lib-storage/*.a
+%{_libdir}/%{name}-devel
 %{_includedir}/%{name}
