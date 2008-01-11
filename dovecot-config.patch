@@ -95,7 +95,3 @@ diff -ur dovecot-1.0.0-o/dovecot-example.conf dovecot-1.0.0/dovecot-example.conf
  
  # Set max. process size in megabytes.
  #auth_process_size = 256
-Only in dovecot-1.0.0: dovecot-example.conf~
-Only in dovecot-1.0.0: dovecot-example.conf.orig
-Only in dovecot-1.0.0: dovecot-example.conf.rej
-Only in dovecot-1.0.0: dovecot-example.conf.rej~
