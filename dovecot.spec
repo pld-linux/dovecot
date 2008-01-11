@@ -25,7 +25,7 @@ BuildRequires:	autoconf
 BuildRequires:	automake
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
 BuildRequires:	gettext-devel
-#BuildRequires:	krb5-devel
+BuildRequires:	krb5-devel
 BuildRequires:	libtool
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.3}
