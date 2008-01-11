@@ -114,8 +114,7 @@ Stan:
 Summary:	Development package for dovecot plugins
 Summary(pl.UTF-8):	Pakiet programistyczny do tworzenia wtyczek dla dovecota
 Group:		Development/Libraries
-# to be killed
-Requires:	%{name} = %{version}-%{release}
+# doesn't require base
 
 %description devel
 Development package for dovecot plugins.
