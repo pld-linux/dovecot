@@ -111,12 +111,17 @@ Stan:
   plików może być problematyczna
 
 %package devel
-Summary:	Libraries and headers for Dovecot
+Summary:	Development package for dovecot plugins
+Summary(pl.UTF-8):	Pakiet programistyczny do tworzenia wtyczek dla dovecota
 Group:		Development/Libraries
+# to be killed
 Requires:	%{name} = %{version}-%{release}
 
 %description devel
-This package contains development files for linking against %{name}.
+Development package for dovecot plugins.
+
+%description devel -l pl.UTF-8
+Pakiet programistyczny do tworzenia wtyczek dla dovecota.
 
 %prep
 %setup -q
@@ -165,20 +170,19 @@ install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
 touch $RPM_BUILD_ROOT/etc/security/blacklist.imap
 
 # devel
-for folder in deliver imap lib lib-imap lib-mail lib-storage; do
-    install -d $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder
-    install -p -m644 src/$folder/*.h $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder/
+for dir in deliver imap lib lib-imap lib-mail lib-storage; do
+	install -d $RPM_BUILD_ROOT%{_includedir}/%{name}/$dir
+	install -p -m644 src/$folder/*.h $RPM_BUILD_ROOT%{_includedir}/%{name}/$dir
 done
 
-for folder in lib lib-imap lib-mail lib-storage; do
-    install -d $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins/$folder
-    install -p -m644 src/$folder/*.a $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins/$folder/
+for dir in lib lib-imap lib-mail lib-storage; do
+	install -d $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins/$dir
+	install -p -m644 src/$folder/*.a $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins/$dir
 done
 
 for f in dovecot-config config.h stamp.h; do
-    install -p -m644 $f $RPM_BUILD_ROOT%{_includedir}/%{name}
+	install -p -m644 $f $RPM_BUILD_ROOT%{_includedir}/%{name}
 done
-
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -221,8 +225,7 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.imap
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{name}
 %attr(754,root,root) /etc/rc.d/init.d/%{name}
-#Files :P
-%dir %{_libdir}/%{name}/
+%dir %{_libdir}/%{name}
 %attr(755,root,root) %{_libdir}/%{name}/checkpassword-reply
 %attr(755,root,root) %{_libdir}/%{name}/deliver
 %attr(755,root,root) %{_libdir}/%{name}/dict
@@ -236,7 +239,7 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/pop3-login
 %attr(755,root,root) %{_libdir}/%{name}/rawlog
 %attr(755,root,root) %{_libdir}/%{name}/ssl-build-param
-%dir %{_libdir}/%{name}/plugins/
+%dir %{_libdir}/%{name}/plugins
 %attr(755,root,root) %{_libdir}/%{name}/plugins/*.so
 %dir %{_libdir}/%{name}/plugins/imap
 %attr(755,root,root)%{_libdir}/%{name}/plugins/imap/*.so
