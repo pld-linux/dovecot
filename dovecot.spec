@@ -10,8 +10,8 @@ Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
 Version:	1.0.10
-Release:	1
-License:	LGPL v2.1 and MIT
+Release:	3
+License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/1.0/%{name}-%{version}.tar.gz
 # Source0-md5:	c050fa2a7dae8984d432595e3e8183e1
@@ -111,17 +111,20 @@ Stan:
   plików może być problematyczna
 
 %package devel
-Summary:	Libraries and headers for Dovecot
+Summary:	Development package for dovecot plugins
+Summary(pl.UTF-8):	Pakiet programistyczny do tworzenia wtyczek dla dovecota
 Group:		Development/Libraries
-Requires:	%{name} = %{version}-%{release}
+# doesn't require base
 
 %description devel
-This package contains development files for linking against %{name}.
+Development package for dovecot plugins.
+
+%description devel -l pl.UTF-8
+Pakiet programistyczny do tworzenia wtyczek dla dovecota.
 
 %prep
 %setup -q
 %patch0 -p1
-#%patch1 -p1
 
 %{__sed} -i 's,/usr/lib/dovecot,%{_libdir}/dovecot,g' dovecot-example.conf
 
@@ -133,7 +136,9 @@ touch config.rpath
 %{__autoheader}
 %{__automake}
 %configure \
+	--disable-static \
 	%{?debug:--enable-debug} \
+	--enable-header-install \
 	%{?with_ldap:--with-ldap} \
 	%{?with_mysql:--with-mysql} \
 	%{?with_pgsql:--with-pgsql} \
@@ -164,21 +169,16 @@ install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
 
 touch $RPM_BUILD_ROOT/etc/security/blacklist.imap
 
+rm -f $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins{,/imap}/*.la
+
 # devel
-for folder in deliver imap lib lib-imap lib-mail lib-storage; do
-    install -d $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder
-    install -p -m644 src/$folder/*.h $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder/
+for dir in lib lib-imap lib-mail lib-storage; do
+	install -d $RPM_BUILD_ROOT%{_libdir}/%{name}-devel/src/$dir
+	install -p -m644 src/$dir/*.a $RPM_BUILD_ROOT%{_libdir}/%{name}-devel/src/$dir
 done
+mv $RPM_BUILD_ROOT%{_libdir}/%{name}/dovecot-config $RPM_BUILD_ROOT%{_libdir}/%{name}-devel
 
-for folder in lib lib-imap lib-mail lib-storage; do
-    install -d $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins/$folder
-    install -p -m644 src/$folder/*.a $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins/$folder/
-done
-
-for f in dovecot-config config.h stamp.h; do
-    install -p -m644 $f $RPM_BUILD_ROOT%{_includedir}/%{name}
-done
-
+rm -r $RPM_BUILD_ROOT%{_docdir}/%{name}/wiki
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -221,8 +221,7 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.imap
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{name}
 %attr(754,root,root) /etc/rc.d/init.d/%{name}
-#Files :P
-%dir %{_libdir}/%{name}/
+%dir %{_libdir}/%{name}
 %attr(755,root,root) %{_libdir}/%{name}/checkpassword-reply
 %attr(755,root,root) %{_libdir}/%{name}/deliver
 %attr(755,root,root) %{_libdir}/%{name}/dict
@@ -236,7 +235,7 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/pop3-login
 %attr(755,root,root) %{_libdir}/%{name}/rawlog
 %attr(755,root,root) %{_libdir}/%{name}/ssl-build-param
-%dir %{_libdir}/%{name}/plugins/
+%dir %{_libdir}/%{name}/plugins
 %attr(755,root,root) %{_libdir}/%{name}/plugins/*.so
 %dir %{_libdir}/%{name}/plugins/imap
 %attr(755,root,root)%{_libdir}/%{name}/plugins/imap/*.so
@@ -250,16 +249,5 @@ fi
 
 %files devel
 %defattr(644,root,root,755)
-%{_libdir}/%{name}/plugins/*.a
-%attr(755,root,root) %{_libdir}/%{name}/plugins/*.la
-%{_libdir}/%{name}/plugins/imap/*.a
-%attr(755,root,root) %{_libdir}/%{name}/plugins/imap/*.la
-%dir %{_libdir}/%{name}/plugins/lib
-%{_libdir}/%{name}/plugins/lib/*.a
-%dir %{_libdir}/%{name}/plugins/lib-imap
-%{_libdir}/%{name}/plugins/lib-imap/*.a
-%dir %{_libdir}/%{name}/plugins/lib-mail
-%{_libdir}/%{name}/plugins/lib-mail/*.a
-%dir %{_libdir}/%{name}/plugins/lib-storage
-%{_libdir}/%{name}/plugins/lib-storage/*.a
+%{_libdir}/%{name}-devel
 %{_includedir}/%{name}
