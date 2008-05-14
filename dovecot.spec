@@ -1,5 +1,6 @@
 #
 # Conditional build:
+%bcond_with	gssapi	# with GSSAPI suport
 %bcond_without	ldap	# without LDAP auth
 %bcond_without	mysql	# without MySQL auth
 %bcond_without	pgsql	# without PostgreSQL auth
@@ -9,12 +10,13 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	1.1.rc3
+Version:	1.1.rc5
 Release:	1
+Epoch:		1
 License:	LGPL v2.1 and MIT
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/1.1/rc/%{name}-%{version}.tar.gz
-# Source0-md5:	eed10a2f5142ebdf88276c0a82f548e1
+# Source0-md5:	e79b2622bda179fabd126f165aa7863c
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
@@ -25,7 +27,7 @@ BuildRequires:	autoconf
 BuildRequires:	automake
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
 BuildRequires:	gettext-devel
-#BuildRequires:	krb5-devel
+%{?with_gssapi:BuildRequires:	krb5-devel}
 BuildRequires:	libtool
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.0}
@@ -114,6 +116,7 @@ Stan:
 Summary: Libraries and headers for Dovecot
 Group: Development/Libraries
 Requires: %name = %{version}-%{release}
+Requires:	openssl-devel >= 0.9.7d
 
 %description devel
 This package contains development files for linking against %{name}.
@@ -138,7 +141,7 @@ touch config.rpath
 	%{?with_pgsql:--with-pgsql} \
 	%{?with_sasl:--with-cyrus-sasl2} \
 	%{?with_sqlite:--with-sqlite} \
-	--with-gssapi \
+	%{?with_gssapi:--with-gssapi} \
 	--with-ssl=openssl \
 	--with-ssl-dir=/var/lib/openssl \
 	--sysconfdir=/etc/%{name}
