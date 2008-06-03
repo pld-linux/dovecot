@@ -47,8 +47,8 @@ stop() {
 
 reload() {
 	if [ -f /var/lock/subsys/dovecot ]; then
-		msg_reloading perlbal
-		killproc perlbal -HUP
+		msg_reloading dovecot
+		killproc docevot -HUP
 		RETVAL=$?
 	else
 		msg_not_running "Dovecot"
