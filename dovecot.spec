@@ -9,18 +9,17 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	1.0.14
+Version:	1.1.1
 Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
-Source0:	http://dovecot.org/releases/1.0/%{name}-%{version}.tar.gz
-# Source0-md5:	89e295832dd5c4ba93d68454e74d7ae3
+Source0:	http://dovecot.org/releases/1.1/%{name}-%{version}.tar.gz
+# Source0-md5:	239072365e4fc35b8a7162f841cb07c9
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
 Patch0:		%{name}-config.patch
-#Patch1:		%{name}-dspam-plugin.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -173,6 +172,10 @@ touch $RPM_BUILD_ROOT/etc/security/blacklist.imap
 rm -f $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins{,/imap}/*.la
 
 # devel
+for folder in deliver imap lib lib-imap lib-mail lib-storage; do
+	install -d $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder
+	install -p -m644 src/$folder/*.h $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder/
+done
 for dir in lib lib-imap lib-mail lib-storage; do
 	install -d $RPM_BUILD_ROOT%{_libdir}/%{name}-devel/src/$dir
 	install -p -m644 src/$dir/*.a $RPM_BUILD_ROOT%{_libdir}/%{name}-devel/src/$dir
@@ -218,6 +221,8 @@ fi
 %attr(755,root,root) %{_sbindir}/%{name}pw
 %attr(750,root,root) %dir %{_sysconfdir}/%{name}
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}-ldap-example.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}-sql-example.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/%{name}
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.imap
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{name}
@@ -231,6 +236,9 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/idxview
 %attr(755,root,root) %{_libdir}/%{name}/imap
 %attr(755,root,root) %{_libdir}/%{name}/imap-login
+%attr(755,root,root) %{_libdir}/%{name}/convert-tool
+%attr(755,root,root) %{_libdir}/%{name}/expire-tool
+%attr(755,root,root) %{_libdir}/%{name}/listview
 %attr(755,root,root) %{_libdir}/%{name}/logview
 %attr(755,root,root) %{_libdir}/%{name}/pop3
 %attr(755,root,root) %{_libdir}/%{name}/pop3-login
