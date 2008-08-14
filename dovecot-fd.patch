@@ -1,0 +1,33 @@
+
+# HG changeset patch
+# User Timo Sirainen <tss@iki.fi>
+# Date 1218576446 14400
+# Node ID 0e880665fcba80d9742f0284064a71675d973844
+# Parent cb794b356034c1ab7220bb958a0907d631291f9b
+Master process leaked one fd to login process. Typically it was listener fd,
+which caused imap-login processes existing after Dovecot was killed to
+keep the port reserved so Dovecot couldn't be started again.
+
+--- a/src/login-common/main.c	Tue Aug 12 15:37:59 2008 -0400
++++ b/src/login-common/main.c	Tue Aug 12 17:27:26 2008 -0400
+@@ -402,7 +402,7 @@ int main(int argc ATTR_UNUSED, char *arg
+ 		env = getenv("SSL_LISTEN_FDS");
+ 		if (env != NULL) i += atoi(env);
+ 
+-		fd_debug_verify_leaks(i + 1, 1024);
++		fd_debug_verify_leaks(i, 1024);
+ 	}
+ #endif
+ 	/* clear all allocated memory before freeing it. this makes the login
+--- a/src/master/login-process.c	Tue Aug 12 15:37:59 2008 -0400
++++ b/src/master/login-process.c	Tue Aug 12 17:27:26 2008 -0400
+@@ -666,7 +666,7 @@ static pid_t create_login_process(struct
+ 		i_fatal("Failed to dup2() fds");
+ 
+ 	/* don't close any of these */
+-	for (tmp_fd = 0; tmp_fd <= cur_fd; tmp_fd++)
++	for (tmp_fd = 0; tmp_fd < cur_fd; tmp_fd++)
+ 		fd_close_on_exec(tmp_fd, FALSE);
+ 
+ 	(void)close(fd[0]);
+
