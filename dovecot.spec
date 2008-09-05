@@ -214,6 +214,10 @@ if [ "$1" = "0" ]; then
 	%groupremove dovecot
 fi
 
+%triggerpostun -- dovecot < 1:1.1
+echo "Configuration change default_mail_env -> mail_location"
+%{__sed} -i -e "s/^default_mail_env/mail_location/" /etc/dovecot/dovecot.conf
+
 %files
 %defattr(644,root,root,755)
 # COPYING contains some notes, not actual LGPL text
