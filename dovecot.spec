@@ -10,13 +10,13 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	1.1.4
+Version:	1.1.5
 Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/1.1/%{name}-%{version}.tar.gz
-# Source0-md5:	0050dd609cb456c8e52565a85373df28
+# Source0-md5:	64e7809aeee750e7c86d81777078e434
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
@@ -155,7 +155,6 @@ touch config.rpath
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{pam.d,rc.d/init.d,sysconfig,security}
-install -d $RPM_BUILD_ROOT{%{_libdir},%{_bindir}}
 install -d $RPM_BUILD_ROOT{/var/lib/dovecot,/var/run/dovecot/login}
 
 %{__make} install \
@@ -183,7 +182,7 @@ for dir in lib lib-imap lib-mail lib-storage; do
 done
 mv $RPM_BUILD_ROOT%{_libdir}/%{name}/dovecot-config $RPM_BUILD_ROOT%{_libdir}/%{name}-devel
 
-rm -r $RPM_BUILD_ROOT%{_docdir}/%{name}/wiki
+rm -rf $RPM_BUILD_ROOT%{_docdir}/%{name}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
