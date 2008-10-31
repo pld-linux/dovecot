@@ -1,5 +1,6 @@
 #
 # Conditional build:
+%bcond_with	gssapi	# with GSSAPI support
 %bcond_without	ldap	# without LDAP auth
 %bcond_without	mysql	# without MySQL auth
 %bcond_without	pgsql	# without PostgreSQL auth
@@ -10,7 +11,7 @@ Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
 Version:	1.1.6
-Release:	1
+Release:	2
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
@@ -25,7 +26,7 @@ BuildRequires:	autoconf
 BuildRequires:	automake
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
 BuildRequires:	gettext-devel
-#BuildRequires:	krb5-devel
+%{?with_gssapi:BuildRequires:	krb5-devel}
 BuildRequires:	libtool
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.3}
@@ -144,7 +145,7 @@ touch config.rpath
 	%{?with_pgsql:--with-pgsql} \
 	%{?with_sasl:--with-cyrus-sasl2} \
 	%{?with_sqlite:--with-sqlite} \
-	--with-gssapi \
+	%{?with_gssapi:--with-gssapi} \
 	--with-ssl=openssl \
 	--with-ssl-dir=/var/lib/openssl \
 	--sysconfdir=/etc/%{name}
