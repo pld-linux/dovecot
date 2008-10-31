@@ -9,13 +9,13 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	1.1.3
+Version:	1.1.6
 Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/1.1/%{name}-%{version}.tar.gz
-# Source0-md5:	103ff0ffb4bcb37f22c27779553e48bc
+# Source0-md5:	ccbfcfcb5e6d19a3228885a2f7eae2dd
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
@@ -154,7 +154,6 @@ touch config.rpath
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{pam.d,rc.d/init.d,sysconfig,security}
-install -d $RPM_BUILD_ROOT{%{_libdir},%{_bindir}}
 install -d $RPM_BUILD_ROOT{/var/lib/dovecot,/var/run/dovecot/login}
 
 %{__make} install \
@@ -182,7 +181,7 @@ for dir in lib lib-imap lib-mail lib-storage; do
 done
 mv $RPM_BUILD_ROOT%{_libdir}/%{name}/dovecot-config $RPM_BUILD_ROOT%{_libdir}/%{name}-devel
 
-rm -r $RPM_BUILD_ROOT%{_docdir}/%{name}/wiki
+rm -rf $RPM_BUILD_ROOT%{_docdir}/%{name}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -212,6 +211,10 @@ if [ "$1" = "0" ]; then
 	%userremove dovecot
 	%groupremove dovecot
 fi
+
+%triggerpostun -- dovecot < 1:1.1
+echo "Configuration change default_mail_env -> mail_location"
+%{__sed} -i -e "s/^default_mail_env/mail_location/" /etc/dovecot/dovecot.conf
 
 %files
 %defattr(644,root,root,755)
