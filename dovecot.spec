@@ -10,13 +10,13 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	1.1.7
+Version:	1.1.11
 Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/1.1/%{name}-%{version}.tar.gz
-# Source0-md5:	ea83ea2000a5b2e1744c7c97eb5585d1
+# Source0-md5:	c973eb41aca79fb16630a16f0d84f765
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
@@ -225,6 +225,7 @@ echo "Configuration change default_mail_env -> mail_location"
 %attr(755,root,root) %{_sbindir}/%{name}pw
 %attr(750,root,root) %dir %{_sysconfdir}/%{name}
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}-db-example.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}-ldap-example.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}-sql-example.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/%{name}
