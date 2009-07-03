@@ -21,7 +21,7 @@ diff -ur dovecot-1.0.0-o/dovecot-example.conf dovecot-1.0.0/dovecot-example.conf
  
  # Set max. process size in megabytes. If you don't use
  # login_process_per_connection you might need to grow this.
-@@ -498,19 +498,19 @@
+@@ -537,20 +537,20 @@
  
  protocol imap {
    # Login executable location.
@@ -31,9 +31,10 @@ diff -ur dovecot-1.0.0-o/dovecot-example.conf dovecot-1.0.0/dovecot-example.conf
    # IMAP executable location. Changing this allows you to execute other
    # binaries before the imap process is executed.
    #
-   # This would write rawlogs into ~/dovecot.rawlog/ directory:
+   # This would write rawlogs into user's ~/dovecot.rawlog/, if it exists:
 -  #   mail_executable = /usr/libexec/dovecot/rawlog /usr/libexec/dovecot/imap
 +  #   mail_executable = /usr/lib/dovecot/rawlog /usr/lib/dovecot/imap
+   # <doc/wiki/Debugging/Rawlog.txt>
    #
    # This would attach gdb into the imap process and write backtraces into
    # /tmp/gdbhelper.* files:

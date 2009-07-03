@@ -10,13 +10,13 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	1.1.16
-Release:	2
+Version:	1.2.0
+Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
-Source0:	http://dovecot.org/releases/1.1/%{name}-%{version}.tar.gz
-# Source0-md5:	2e20c761416b16aa0fe9cac260ca0d2d
+Source0:	http://dovecot.org/releases/1.2/%{name}-%{version}.tar.gz
+# Source0-md5:	b382fa5c6551086568c21567f23e2dc3
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
@@ -24,9 +24,11 @@ Patch0:		%{name}-config.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
+BuildRequires:	bzip2-devel
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
 BuildRequires:	gettext-devel
 %{?with_gssapi:BuildRequires:	heimdal-devel}
+BuildRequires:	libcap-devel
 BuildRequires:	libtool
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.3}
@@ -36,6 +38,7 @@ BuildRequires:	pkgconfig
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 BuildRequires:	sed >= 4.0
 %{?with_sqlite:BuildRequires:	sqlite3-devel}
+BuildRequires:	zlib-devel
 Requires(post,preun):	/sbin/chkconfig
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
@@ -140,14 +143,16 @@ touch config.rpath
 	--disable-static \
 	%{?debug:--enable-debug} \
 	--enable-header-install \
-	%{?with_ldap:--with-ldap} \
+	%{?with_ldap:--with-ldap=plugin} \
 	%{?with_mysql:--with-mysql} \
 	%{?with_pgsql:--with-pgsql} \
-	%{?with_sasl:--with-cyrus-sasl2} \
 	%{?with_sqlite:--with-sqlite} \
-	%{?with_gssapi:--with-gssapi} \
+	%{?with_gssapi:--with-gssapi=plugin} \
+	--with-zlib \
+	--with-bzlib \
+	--with-libcap \
 	--with-ssl=openssl \
-	--with-ssl-dir=/var/lib/openssl \
+	--with-ssldir=/var/lib/openssl \
 	--sysconfdir=/etc/%{name}
 
 %{__make}
@@ -241,6 +246,7 @@ echo "Configuration change default_mail_env -> mail_location"
 %attr(755,root,root) %{_libdir}/%{name}/idxview
 %attr(755,root,root) %{_libdir}/%{name}/imap
 %attr(755,root,root) %{_libdir}/%{name}/imap-login
+%attr(755,root,root) %{_libdir}/%{name}/imap-utf7
 %attr(755,root,root) %{_libdir}/%{name}/convert-tool
 %attr(755,root,root) %{_libdir}/%{name}/expire-tool
 %attr(755,root,root) %{_libdir}/%{name}/listview
@@ -250,8 +256,11 @@ echo "Configuration change default_mail_env -> mail_location"
 %attr(755,root,root) %{_libdir}/%{name}/pop3-login
 %attr(755,root,root) %{_libdir}/%{name}/rawlog
 %attr(755,root,root) %{_libdir}/%{name}/ssl-build-param
+%attr(755,root,root) %{_libdir}/%{name}/threadview
 %dir %{_libdir}/%{name}/plugins
 %attr(755,root,root) %{_libdir}/%{name}/plugins/*.so
+%dir %{_libdir}/%{name}/plugins/auth
+%attr(755,root,root)%{_libdir}/%{name}/plugins/auth/*.so
 %dir %{_libdir}/%{name}/plugins/imap
 %attr(755,root,root)%{_libdir}/%{name}/plugins/imap/*.so
 %dir %{_libdir}/%{name}/plugins/lda
