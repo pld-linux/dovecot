@@ -11,7 +11,7 @@ Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
 Version:	1.2.1
-Release:	1
+Release:	2
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
@@ -26,6 +26,7 @@ BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	bzip2-devel
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
+BuildRequires:	findutils
 BuildRequires:	gettext-devel
 %{?with_gssapi:BuildRequires:	heimdal-devel}
 BuildRequires:	libcap-devel
@@ -181,9 +182,10 @@ for folder in deliver imap lib lib-imap lib-mail lib-storage; do
 	install -d $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder
 	install -p -m644 src/$folder/*.h $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder/
 done
-for dir in lib lib-imap lib-mail lib-storage; do
-	install -d $RPM_BUILD_ROOT%{_libdir}/%{name}-devel/src/$dir
-	install -p -m644 src/$dir/*.a $RPM_BUILD_ROOT%{_libdir}/%{name}-devel/src/$dir
+for dir in lib lib-auth lib-charset lib-imap lib-index lib-mail lib-storage; do
+	for file in $(find src/$dir -name '*.a'); do
+		install -D -m644 $file $RPM_BUILD_ROOT%{_libdir}/%{name}-devel/$file
+	done
 done
 mv $RPM_BUILD_ROOT%{_libdir}/%{name}/dovecot-config $RPM_BUILD_ROOT%{_libdir}/%{name}-devel
 
