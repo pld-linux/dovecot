@@ -10,13 +10,13 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	1.2.1
-Release:	2
+Version:	1.2.2
+Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/1.2/%{name}-%{version}.tar.gz
-# Source0-md5:	c269cfe38fc40061e232dd28e5fe3721
+# Source0-md5:	4b3b78172ea557e6051ff8660ea1b7ae
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
@@ -175,7 +175,7 @@ install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
 
 touch $RPM_BUILD_ROOT/etc/security/blacklist.imap
 
-rm -f $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins{,/imap}/*.la
+rm -f $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins{,/auth,/imap}/*.la
 
 # devel
 for folder in deliver imap lib lib-imap lib-mail lib-storage; do
@@ -233,6 +233,7 @@ echo "Configuration change default_mail_env -> mail_location"
 %attr(750,root,root) %dir %{_sysconfdir}/%{name}
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}-db-example.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}-dict-sql-example.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}-ldap-example.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}-sql-example.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/%{name}
