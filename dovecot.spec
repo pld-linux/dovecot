@@ -11,7 +11,7 @@ Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
 Version:	1.2.6
-Release:	1
+Release:	2
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
@@ -144,7 +144,7 @@ touch config.rpath
 	--disable-static \
 	%{?debug:--enable-debug} \
 	--enable-header-install \
-	%{?with_ldap:--with-ldap=plugin} \
+	%{?with_ldap:--with-ldap=yes} \
 	%{?with_mysql:--with-mysql} \
 	%{?with_pgsql:--with-pgsql} \
 	%{?with_sqlite:--with-sqlite} \
@@ -263,8 +263,8 @@ echo "Configuration change default_mail_env -> mail_location"
 %attr(755,root,root) %{_libdir}/%{name}/threadview
 %dir %{_libdir}/%{name}/plugins
 %attr(755,root,root) %{_libdir}/%{name}/plugins/*.so
-%dir %{_libdir}/%{name}/plugins/auth
-%attr(755,root,root)%{_libdir}/%{name}/plugins/auth/*.so
+#%dir %{_libdir}/%{name}/plugins/auth
+#%attr(755,root,root)%{_libdir}/%{name}/plugins/auth/*.so
 %dir %{_libdir}/%{name}/plugins/imap
 %attr(755,root,root)%{_libdir}/%{name}/plugins/imap/*.so
 %dir %{_libdir}/%{name}/plugins/lda
