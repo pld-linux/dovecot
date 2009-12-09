@@ -148,7 +148,7 @@ touch config.rpath
 	%{?with_mysql:--with-mysql} \
 	%{?with_pgsql:--with-pgsql} \
 	%{?with_sqlite:--with-sqlite} \
-	%{?with_gssapi:--with-gssapi=plugin} \
+	%{?with_gssapi:--with-gssapi} \
 	--with-zlib \
 	--with-bzlib \
 	--with-libcap \
