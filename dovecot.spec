@@ -1,6 +1,6 @@
 #
 # Conditional build:
-%bcond_with	gssapi	# with GSSAPI support
+%bcond_without	gssapi	# without GSSAPI support
 %bcond_without	ldap	# without LDAP auth
 %bcond_without	mysql	# without MySQL auth
 %bcond_without	pgsql	# without PostgreSQL auth
@@ -11,7 +11,7 @@ Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
 Version:	1.2.8
-Release:	1
+Release:	2
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
