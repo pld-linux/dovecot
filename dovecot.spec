@@ -26,7 +26,6 @@ BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	bzip2-devel
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
-BuildRequires:	findutils
 BuildRequires:	gettext-devel
 %{?with_gssapi:BuildRequires:	heimdal-devel}
 BuildRequires:	libcap-devel
