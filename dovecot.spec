@@ -230,7 +230,7 @@ echo "Configuration change default_mail_env -> mail_location"
 %doc AUTHORS COPYING ChangeLog NEWS README TODO doc/*.txt doc/*.c*f doc/wiki/*.txt
 %attr(755,root,root) %{_sbindir}/%{name}
 %attr(755,root,root) %{_sbindir}/%{name}pw
-%attr(750,root,root) %dir %{_sysconfdir}/%{name}
+%attr(751,root,root) %dir %{_sysconfdir}/%{name}
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}-db-example.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}-dict-sql-example.conf
