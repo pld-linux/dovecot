@@ -11,7 +11,7 @@ Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
 Version:	1.2.10
-Release:	1
+Release:	2
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
@@ -177,11 +177,11 @@ touch $RPM_BUILD_ROOT/etc/security/blacklist.imap
 rm -f $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins{,/auth,/imap}/*.la
 
 # devel
-for folder in deliver imap lib lib-imap lib-mail lib-storage; do
+for folder in deliver imap lib lib-dict lib-imap lib-mail lib-storage; do
 	install -d $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder
 	install -p -m644 src/$folder/*.h $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder/
 done
-for dir in lib lib-auth lib-charset lib-imap lib-index lib-mail lib-storage; do
+for dir in lib lib-auth lib-charset lib-dict lib-imap lib-index lib-mail lib-storage; do
 	for file in $(find src/$dir -name '*.a'); do
 		install -D -m644 $file $RPM_BUILD_ROOT%{_libdir}/%{name}-devel/$file
 	done
