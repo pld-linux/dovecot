@@ -135,14 +135,13 @@ Pakiet programistyczny do tworzenia wtyczek dla dovecota.
 %build
 touch config.rpath
 %{__libtoolize}
-%{__aclocal}
+%{__aclocal} -I .
 %{__autoconf}
 %{__autoheader}
 %{__automake}
 %configure \
 	--disable-static \
 	%{?debug:--enable-debug} \
-	--enable-header-install \
 	%{?with_ldap:--with-ldap=yes} \
 	%{?with_mysql:--with-mysql} \
 	%{?with_pgsql:--with-pgsql} \
