@@ -10,13 +10,13 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	2.0.0
+Version:	2.0.2
 Release:	0.1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/2.0/%{name}-%{version}.tar.gz
-# Source0-md5:	2ca3cbd523cac1cbd53a904255dcd4f8
+# Source0-md5:	e6386f44d027bd3f3f21400e162cf4f6
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
@@ -151,6 +151,7 @@ touch config.rpath
 	--with-bzlib \
 	--with-libcap \
 	--with-ssl=openssl \
+	--with-moduledir=%{_libdir}/%{name}/plugins \
 	--with-ssldir=/var/lib/openssl \
 	--sysconfdir=/etc/%{name}
 
@@ -162,10 +163,9 @@ install -d $RPM_BUILD_ROOT/etc/{pam.d,rc.d/init.d,sysconfig,security}
 install -d $RPM_BUILD_ROOT{/var/lib/dovecot,/var/run/dovecot/login}
 
 %{__make} install \
-	moduledir=%{_libdir}/%{name}/plugins \
 	DESTDIR=$RPM_BUILD_ROOT
 
-mv -f $RPM_BUILD_ROOT%{_sysconfdir}/%{name}/{dovecot-example.conf,dovecot.conf}
+mv -f $RPM_BUILD_ROOT%{_datadir}/doc/%{name}/example-config/* $RPM_BUILD_ROOT%{_sysconfdir}/dovecot
 
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/pam.d/%{name}
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
