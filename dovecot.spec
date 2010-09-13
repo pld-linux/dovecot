@@ -173,21 +173,11 @@ install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
 
 touch $RPM_BUILD_ROOT/etc/security/blacklist.imap
 
-rm -f $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins{,/auth,/imap}/*.la
+rm $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins{,/*}/*.la
 
-# devel
-for folder in deliver imap lib lib-dict lib-imap lib-mail lib-storage; do
-	install -d $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder
-	install -p -m644 src/$folder/*.h $RPM_BUILD_ROOT%{_includedir}/%{name}/$folder/
-done
-for dir in lib lib-auth lib-charset lib-dict lib-imap lib-index lib-mail lib-storage; do
-	for file in $(find src/$dir -name '*.a'); do
-		install -D -m644 $file $RPM_BUILD_ROOT%{_libdir}/%{name}-devel/$file
-	done
-done
 mv $RPM_BUILD_ROOT%{_libdir}/%{name}/dovecot-config $RPM_BUILD_ROOT%{_libdir}/%{name}-devel
 
-rm -rf $RPM_BUILD_ROOT%{_docdir}/%{name}
+rm -r $RPM_BUILD_ROOT%{_docdir}/%{name}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -226,54 +216,60 @@ echo "Configuration change default_mail_env -> mail_location"
 %defattr(644,root,root,755)
 # COPYING contains some notes, not actual LGPL text
 %doc AUTHORS COPYING ChangeLog NEWS README TODO doc/*.txt doc/*.c*f doc/wiki/*.txt
+%attr(755,root,root) %{_bindir}/doveadm
+%attr(755,root,root) %{_bindir}/doveconf
+%attr(755,root,root) %{_bindir}/dsync
 %attr(755,root,root) %{_sbindir}/%{name}
-%attr(755,root,root) %{_sbindir}/%{name}pw
 %attr(751,root,root) %dir %{_sysconfdir}/%{name}
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}.conf
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}-db-example.conf
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}-dict-sql-example.conf
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}-ldap-example.conf
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/%{name}-sql-example.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/*.ext
+%attr(751,root,root) %dir %{_sysconfdir}/%{name}/conf.d
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/conf.d/*.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}/conf.d/*.ext
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/%{name}
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.imap
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{name}
 %attr(754,root,root) /etc/rc.d/init.d/%{name}
 %dir %{_libdir}/%{name}
-%attr(755,root,root) %{_libdir}/%{name}/authtest
+%attr(755,root,root) %{_libdir}/%{name}/anvil
+%attr(755,root,root) %{_libdir}/%{name}/auth
 %attr(755,root,root) %{_libdir}/%{name}/checkpassword-reply
+%attr(755,root,root) %{_libdir}/%{name}/config
 %attr(755,root,root) %{_libdir}/%{name}/deliver
 %attr(755,root,root) %{_libdir}/%{name}/dict
-%attr(755,root,root) %{_libdir}/%{name}/dovecot-auth
+%attr(755,root,root) %{_libdir}/%{name}/director
+%attr(755,root,root) %{_libdir}/%{name}/dns-client
+%attr(755,root,root) %{_libdir}/%{name}/doveadm-server
+%attr(755,root,root) %{_libdir}/%{name}/dovecot-lda
 %attr(755,root,root) %{_libdir}/%{name}/gdbhelper
-%attr(755,root,root) %{_libdir}/%{name}/idxview
 %attr(755,root,root) %{_libdir}/%{name}/imap
 %attr(755,root,root) %{_libdir}/%{name}/imap-login
-%attr(755,root,root) %{_libdir}/%{name}/imap-utf7
-%attr(755,root,root) %{_libdir}/%{name}/convert-tool
-%attr(755,root,root) %{_libdir}/%{name}/expire-tool
 %attr(755,root,root) %{_libdir}/%{name}/listview
-%attr(755,root,root) %{_libdir}/%{name}/logview
+%attr(755,root,root) %{_libdir}/%{name}/lmtp
+%attr(755,root,root) %{_libdir}/%{name}/log
 %attr(755,root,root) %{_libdir}/%{name}/maildirlock
 %attr(755,root,root) %{_libdir}/%{name}/pop3
 %attr(755,root,root) %{_libdir}/%{name}/pop3-login
 %attr(755,root,root) %{_libdir}/%{name}/rawlog
-%attr(755,root,root) %{_libdir}/%{name}/ssl-build-param
-%attr(755,root,root) %{_libdir}/%{name}/threadview
+%attr(755,root,root) %{_libdir}/%{name}/script
+%attr(755,root,root) %{_libdir}/%{name}/script-login
+%attr(755,root,root) %{_libdir}/%{name}/ssl-params
+%attr(755,root,root)%{_libdir}/%{name}/lib*.so*
 %dir %{_libdir}/%{name}/plugins
 %attr(755,root,root) %{_libdir}/%{name}/plugins/*.so
-#%dir %{_libdir}/%{name}/plugins/auth
-#%attr(755,root,root)%{_libdir}/%{name}/plugins/auth/*.so
-%dir %{_libdir}/%{name}/plugins/imap
-%attr(755,root,root)%{_libdir}/%{name}/plugins/imap/*.so
-%dir %{_libdir}/%{name}/plugins/lda
-%attr(755,root,root) %{_libdir}/%{name}/plugins/lda/*.so
-%dir %{_libdir}/%{name}/plugins/pop3
-%attr(755,root,root) %{_libdir}/%{name}/plugins/pop3/*.so
+%dir %{_libdir}/%{name}/plugins/doveadm
+%attr(755,root,root)%{_libdir}/%{name}/plugins/doveadm/*.so
 %dir /var/lib/dovecot
 %dir /var/run/dovecot
 %attr(750,root,dovecot) %dir /var/run/dovecot/login
+
+%{_mandir}/man1/deliver.1*
+%{_mandir}/man1/dove*.1*
+%{_mandir}/man1/dsync.1*
+%{_mandir}/man7/doveadm-search-query.7*
 
 %files devel
 %defattr(644,root,root,755)
 %{_libdir}/%{name}-devel
 %{_includedir}/%{name}
+%{_aclocaldir}/dovecot.m4
