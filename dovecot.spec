@@ -146,14 +146,16 @@ touch config.rpath
 	%{?with_mysql:--with-mysql} \
 	%{?with_pgsql:--with-pgsql} \
 	%{?with_sqlite:--with-sqlite} \
-	%{?with_gssapi:--with-gssapi} \
+	%{?with_gssapi:--with-gssapi=plugin} \
+	--with-sql=plugin \
+	--with-pam \
 	--with-zlib \
 	--with-bzlib \
 	--with-libcap \
 	--with-ssl=openssl \
 	--with-moduledir=%{_libdir}/%{name}/plugins \
 	--with-ssldir=/var/lib/openssl \
-	--sysconfdir=/etc/%{name}
+	--sysconfdir=/etc
 
 %{__make}
 
@@ -257,6 +259,10 @@ echo "Configuration change default_mail_env -> mail_location"
 %attr(755,root,root)%{_libdir}/%{name}/lib*.so*
 %dir %{_libdir}/%{name}/plugins
 %attr(755,root,root) %{_libdir}/%{name}/plugins/*.so
+%dir %{_libdir}/%{name}/plugins/auth
+%attr(755,root,root)%{_libdir}/%{name}/plugins/auth/*.so
+%dir %{_libdir}/%{name}/plugins/dict
+%attr(755,root,root)%{_libdir}/%{name}/plugins/dict/*.so
 %dir %{_libdir}/%{name}/plugins/doveadm
 %attr(755,root,root)%{_libdir}/%{name}/plugins/doveadm/*.so
 %dir /var/lib/dovecot
