@@ -1,15 +1,3 @@
-diff -urN dovecot-2.0.0.org/doc/example-config/conf.d/10-master.conf dovecot-2.0.0/doc/example-config/conf.d/10-master.conf
---- dovecot-2.0.0.org/doc/example-config/conf.d/10-master.conf	2010-06-16 20:56:26.000000000 +0200
-+++ dovecot-2.0.0/doc/example-config/conf.d/10-master.conf	2010-08-21 09:37:39.567272532 +0200
-@@ -4,7 +4,7 @@
- 
- # Login user is internally used by login processes. This is the most untrusted
- # user in Dovecot system. It shouldn't have access to anything at all.
--#default_login_user = dovenull
-+default_login_user = dovecot
- 
- # Internal user is used by unprivileged processes. It should be separate from
- # login user, so that login processes can't disturb other processes.
 diff -urN dovecot-2.0.0.org/doc/example-config/conf.d/10-ssl.conf dovecot-2.0.0/doc/example-config/conf.d/10-ssl.conf
 --- dovecot-2.0.0.org/doc/example-config/conf.d/10-ssl.conf	2010-05-24 16:35:40.000000000 +0200
 +++ dovecot-2.0.0/doc/example-config/conf.d/10-ssl.conf	2010-08-21 09:36:31.513101379 +0200
