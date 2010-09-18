@@ -1,14 +1,21 @@
-diff -urN dovecot-2.0.0.org/doc/example-config/conf.d/10-ssl.conf dovecot-2.0.0/doc/example-config/conf.d/10-ssl.conf
---- dovecot-2.0.0.org/doc/example-config/conf.d/10-ssl.conf	2010-05-24 16:35:40.000000000 +0200
-+++ dovecot-2.0.0/doc/example-config/conf.d/10-ssl.conf	2010-08-21 09:36:31.513101379 +0200
-@@ -9,8 +9,8 @@
+diff -urN dovecot-2.0.3.org/doc/example-config/conf.d/10-ssl.conf dovecot-2.0.3/doc/example-config/conf.d/10-ssl.conf
+--- dovecot-2.0.3.org/doc/example-config/conf.d/10-ssl.conf	2010-05-24 16:35:40.000000000 +0200
++++ dovecot-2.0.3/doc/example-config/conf.d/10-ssl.conf	2010-09-18 22:05:37.079775811 +0200
+@@ -3,14 +3,14 @@
+ ##
+ 
+ # SSL/TLS support: yes, no, required. <doc/wiki/SSL.txt>
+-#ssl = yes
++ssl = no
+ 
+ # PEM encoded X.509 SSL/TLS certificate and private key. They're opened before
  # dropping root privileges, so keep the key file unreadable by anyone but
  # root. Included doc/mkcert.sh can be used to easily generate self-signed
  # certificate, just make sure to update the domains in dovecot-openssl.cnf
 -ssl_cert = </etc/ssl/certs/dovecot.pem
 -ssl_key = </etc/ssl/private/dovecot.pem
-+ssl_cert = </var/lib/openssl/certs/imap.pem
-+ssl_key = </var/lib/openssl/private/imap.pem
++#ssl_cert = </var/lib/openssl/certs/imap.pem
++#ssl_key = </var/lib/openssl/private/imap.pem
  
  # If key file is password protected, give the password here. Alternatively
  # give it when starting dovecot with -p parameter. Since this file is often
