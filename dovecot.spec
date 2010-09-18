@@ -271,7 +271,7 @@ echo "Configuration change default_mail_env -> mail_location"
 %attr(755,root,root)%{_libdir}/%{name}/plugins/doveadm/*.so
 %dir /var/lib/dovecot
 %dir /var/run/dovecot
-%attr(750,root,dovecot) %dir /var/run/dovecot/login
+%attr(750,root,dovenull) %dir /var/run/dovecot/login
 
 %{_mandir}/man1/deliver.1*
 %{_mandir}/man1/dove*.1*
