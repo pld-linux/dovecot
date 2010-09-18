@@ -229,8 +229,7 @@ for a in /etc/dovecot/dovecot-db-example.conf \
 		[ "$i" -eq 0 ] && echo "Read http://wiki2.dovecot.org/Upgrading/2.0"
 		i=1
 		echo "Trying to migrate $a config file to dovecot 2."
-		cp -a "$a" "$a-1.2.org"
-		%{_bindir}/doveconf -n -c "$a-1.2.org" > "$a"
+		cp -a "$a" "$a-1.2.org" && %{_bindir}/doveconf -n -c "$a-1.2.org" > "$a" 2>&1 || :
 	fi
 done
 
