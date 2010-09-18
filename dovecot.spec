@@ -218,6 +218,20 @@ fi
 echo "Configuration change default_mail_env -> mail_location"
 %{__sed} -i -e "s/^default_mail_env/mail_location/" /etc/dovecot/dovecot.conf
 
+%triggerpostun -- dovecot < 1:2.0.0
+echo "Read http://wiki2.dovecot.org/Upgrading/2.0"
+for a in /etc/dovecot/dovecot-db-example.conf \
+	/etc/dovecot/dovecot-dict-sql-example.conf \
+	/etc/dovecot/dovecot-ldap-example.conf \
+	/etc/dovecot/dovecot-sql-example.conf \
+	/etc/dovecot/dovecot.conf; do
+	if [ -f "$a" ]; then
+		echo "Trying to migrate $a config file to dovecot 2."
+		cp -a "$a" "$a-1.2.org"
+		%{_sbindir}/doveconf -n -c "$a-1.2.org" > "$a"
+	fi
+done
+
 %files
 %defattr(644,root,root,755)
 # COPYING contains some notes, not actual LGPL text
