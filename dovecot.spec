@@ -187,6 +187,8 @@ rm -rf $RPM_BUILD_ROOT
 %pre
 %groupadd -g 172 dovecot
 %useradd -u 172 -d /usr/share/empty -s /bin/false -c "Dovecot server" -g dovecot dovecot
+%groupadd -g 254 dovenull
+%useradd -u 254 -d /usr/share/empty -s /bin/false -c "Dovecot server" -g dovenull dovenull
 
 %post
 /sbin/chkconfig --add dovecot
@@ -208,6 +210,8 @@ fi
 if [ "$1" = "0" ]; then
 	%userremove dovecot
 	%groupremove dovecot
+	%userremove dovenull
+	%groupremove dovenull
 fi
 
 %triggerpostun -- dovecot < 1:1.1
