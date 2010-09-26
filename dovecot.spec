@@ -229,9 +229,14 @@ for a in /etc/dovecot/dovecot-db-example.conf \
 		[ "$i" -eq 0 ] && echo "Read http://wiki2.dovecot.org/Upgrading/2.0"
 		i=1
 		echo "Trying to migrate $a config file to dovecot 2."
-		cp -a "$a" "$a-1.2.org" && %{_bindir}/doveconf -n -c "$a-1.2.org" > "$a" 2>&1 || :
+		cp -a "$a" "$a-1.2.org"
+		# convert config and prefix stderr lines with #
+		( %{_bindir}/doveconf -n -c "$a-1.2.org" 3>&2 2>&1 1>&3 | sed 's/^/#/' ) 2>&1 > "$a" || :
 	fi
 done
+if [ "$i" -eq 1 ]; then
+	echo "Please verify contents of %{_sysconfdir}/%{name}/* files."
+fi
 
 %files
 %defattr(644,root,root,755)
