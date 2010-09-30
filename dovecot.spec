@@ -230,8 +230,10 @@ for a in /etc/dovecot/dovecot-db-example.conf \
 		i=1
 		echo "Trying to migrate $a config file to dovecot 2."
 		cp -a "$a" "$a-1.2.org"
+		:> "$a.log"
+		chmod 600 "$a.log"
 		# convert config and prefix stderr lines with #
-		( %{_bindir}/doveconf -n -c "$a-1.2.org" 3>&2 2>&1 1>&3 | sed 's/^/#/' ) 2>&1 > "$a" || :
+		%{_bindir}/doveconf -n -c "$a-1.2.org" > "$a" 2> "$a.log" || :
 	fi
 done
 if [ "$i" -eq 1 ]; then
