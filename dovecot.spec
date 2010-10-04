@@ -52,6 +52,8 @@ Provides:	imapdaemon
 Provides:	user(dovecot)
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
+%define		no_install_post_check_so	1
+
 %description
 Dovecot is an IMAP and POP3 server for Linux/UNIX-like systems,
 written with security primarily in mind. Although it's written with C,
