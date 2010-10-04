@@ -11,7 +11,7 @@ Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
 Version:	2.0.4
-Release:	1
+Release:	2
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
@@ -216,11 +216,11 @@ if [ "$1" = "0" ]; then
 	%groupremove dovenull
 fi
 
-%triggerpostun -- dovecot < 1:1.1
+%triggerpostun -- dovecot < 1:2.0.0
+# upgrading dovecot < 1.1
 echo "Configuration change default_mail_env -> mail_location"
 %{__sed} -i -e "s/^default_mail_env/mail_location/" /etc/dovecot/dovecot.conf
-
-%triggerpostun -- dovecot < 1:2.0.0
+# upgrading dovecot < 2.0
 i=0
 for a in /etc/dovecot/dovecot-db-example.conf \
 	/etc/dovecot/dovecot-dict-sql-example.conf \
