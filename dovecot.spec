@@ -117,16 +117,16 @@ Stan:
   plików może być problematyczna
 
 %package devel
-Summary:	Development package for dovecot plugins
-Summary(pl.UTF-8):	Pakiet programistyczny do tworzenia wtyczek dla dovecota
+Summary:	Development package for Dovecot plugins
+Summary(pl.UTF-8):	Pakiet programistyczny do tworzenia wtyczek dla Dovecota
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
 
 %description devel
-Development package for dovecot plugins.
+Development package for Dovecot plugins.
 
 %description devel -l pl.UTF-8
-Pakiet programistyczny do tworzenia wtyczek dla dovecota.
+Pakiet programistyczny do tworzenia wtyczek dla Dovecota.
 
 %package libs
 Summary:	Dovecot shared libraries
