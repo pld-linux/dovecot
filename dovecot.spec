@@ -134,10 +134,10 @@ Summary(pl.UTF-8):	Współdzielone biblioteki Dovecota
 Group:		Development/Libraries
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
-%description devel
+%description libs
 Dovecot shared libraries.
 
-%description devel -l pl.UTF-8
+%description libs -l pl.UTF-8
 Współdzielone biblioteki Dovecota.
 
 %prep
