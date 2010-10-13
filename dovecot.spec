@@ -120,13 +120,25 @@ Stan:
 Summary:	Development package for dovecot plugins
 Summary(pl.UTF-8):	Pakiet programistyczny do tworzenia wtyczek dla dovecota
 Group:		Development/Libraries
-Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
 
 %description devel
 Development package for dovecot plugins.
 
 %description devel -l pl.UTF-8
 Pakiet programistyczny do tworzenia wtyczek dla dovecota.
+
+%package libs
+Summary:	Dovecot shared libraries
+Summary(pl.UTF-8):	Współdzielone biblioteki Dovecota
+Group:		Development/Libraries
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+
+%description devel
+Dovecot shared libraries.
+
+%description devel -l pl.UTF-8
+Współdzielone biblioteki Dovecota.
 
 %prep
 %setup -q
@@ -260,7 +272,6 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.imap
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{name}
 %attr(754,root,root) /etc/rc.d/init.d/%{name}
-%dir %{_libdir}/%{name}
 %attr(755,root,root) %{_libdir}/%{name}/anvil
 %attr(755,root,root) %{_libdir}/%{name}/auth
 %attr(755,root,root) %{_libdir}/%{name}/checkpassword-reply
@@ -284,7 +295,6 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/script
 %attr(755,root,root) %{_libdir}/%{name}/script-login
 %attr(755,root,root) %{_libdir}/%{name}/ssl-params
-%attr(755,root,root)%{_libdir}/%{name}/lib*.so*
 %dir %{_libdir}/%{name}/plugins
 %attr(755,root,root) %{_libdir}/%{name}/plugins/*.so
 %dir %{_libdir}/%{name}/plugins/auth
@@ -304,6 +314,22 @@ fi
 
 %files devel
 %defattr(644,root,root,755)
+%attr(755,root,root)%{_libdir}/%{name}/libdovecot.so
+%attr(755,root,root)%{_libdir}/%{name}/libdovecot-lda.so
+%attr(755,root,root)%{_libdir}/%{name}/libdovecot-login.so
+%attr(755,root,root)%{_libdir}/%{name}/libdovecot-storage.so
 %{_libdir}/%{name}-devel
 %{_includedir}/%{name}
 %{_aclocaldir}/dovecot.m4
+
+%files libs
+%defattr(644,root,root,755)
+%dir %{_libdir}/%{name}
+%attr(755,root,root)%{_libdir}/%{name}/libdovecot.so.0.0.0
+%attr(755,root,root)%{_libdir}/%{name}/libdovecot-lda.so.0.0.0
+%attr(755,root,root)%{_libdir}/%{name}/libdovecot-login.so.0.0.0
+%attr(755,root,root)%{_libdir}/%{name}/libdovecot-storage.so.0.0.0
+%ghost %attr(755,root,root)%{_libdir}/%{name}/libdovecot.so.0
+%ghost %attr(755,root,root)%{_libdir}/%{name}/libdovecot-lda.so.0
+%ghost %attr(755,root,root)%{_libdir}/%{name}/libdovecot-login.so.0
+%ghost %attr(755,root,root)%{_libdir}/%{name}/libdovecot-storage.so.0
