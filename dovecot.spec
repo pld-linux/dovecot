@@ -1,3 +1,5 @@
+# TODO
+# - use %service macros
 #
 # Conditional build:
 %bcond_without	gssapi	# without GSSAPI support
@@ -6,7 +8,7 @@
 %bcond_without	pgsql	# without PostgreSQL auth
 %bcond_without	sqlite	# without SQLite3 auth
 %bcond_without	sasl	# without SASL auth
-#
+
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
@@ -169,7 +171,7 @@ touch config.rpath
 	--with-ssl=openssl \
 	--with-moduledir=%{_libdir}/%{name}/plugins \
 	--with-ssldir=/var/lib/openssl \
-	--sysconfdir=/etc
+	--sysconfdir=%{_sysconfdir}
 
 %{__make}
 
@@ -183,9 +185,9 @@ install -d $RPM_BUILD_ROOT{/var/lib/dovecot,/var/run/dovecot/login}
 
 mv -f $RPM_BUILD_ROOT%{_datadir}/doc/%{name}/example-config/* $RPM_BUILD_ROOT%{_sysconfdir}/dovecot
 
-install %{SOURCE1} $RPM_BUILD_ROOT/etc/pam.d/%{name}
-install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
-install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
+cp -a %{SOURCE1} $RPM_BUILD_ROOT/etc/pam.d/%{name}
+install -p %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
+cp -a %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
 
 touch $RPM_BUILD_ROOT/etc/security/blacklist.imap
 
@@ -301,11 +303,11 @@ fi
 %dir %{_libdir}/%{name}/plugins
 %attr(755,root,root) %{_libdir}/%{name}/plugins/*.so
 %dir %{_libdir}/%{name}/plugins/auth
-%attr(755,root,root)%{_libdir}/%{name}/plugins/auth/*.so
+%attr(755,root,root) %{_libdir}/%{name}/plugins/auth/*.so
 %dir %{_libdir}/%{name}/plugins/dict
-%attr(755,root,root)%{_libdir}/%{name}/plugins/dict/*.so
+%attr(755,root,root) %{_libdir}/%{name}/plugins/dict/*.so
 %dir %{_libdir}/%{name}/plugins/doveadm
-%attr(755,root,root)%{_libdir}/%{name}/plugins/doveadm/*.so
+%attr(755,root,root) %{_libdir}/%{name}/plugins/doveadm/*.so
 %dir /var/lib/dovecot
 %dir /var/run/dovecot
 %attr(750,root,dovenull) %dir /var/run/dovecot/login
@@ -317,10 +319,10 @@ fi
 
 %files devel
 %defattr(644,root,root,755)
-%attr(755,root,root)%{_libdir}/%{name}/libdovecot.so
-%attr(755,root,root)%{_libdir}/%{name}/libdovecot-lda.so
-%attr(755,root,root)%{_libdir}/%{name}/libdovecot-login.so
-%attr(755,root,root)%{_libdir}/%{name}/libdovecot-storage.so
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot.so
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so
 %{_libdir}/%{name}-devel
 %{_includedir}/%{name}
 %{_aclocaldir}/dovecot.m4
@@ -328,13 +330,13 @@ fi
 %files libs
 %defattr(644,root,root,755)
 %dir %{_libdir}/%{name}
-%attr(755,root,root)%{_libdir}/%{name}/libdovecot.so.0.0.0
-%attr(755,root,root)%{_libdir}/%{name}/libdovecot-lda.so.0.0.0
-%attr(755,root,root)%{_libdir}/%{name}/libdovecot-login.so.0.0.0
-%attr(755,root,root)%{_libdir}/%{name}/libdovecot-storage.so.0.0.0
-# Note: we are in /usr/lib*/dovecot, ldconfig does not look into this
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot.so.0.0.0
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so.0.0.0
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so.0.0.0
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so.0.0.0
+# Note: we are in %{_libdir}/dovecot, ldconfig does not look into this
 # directory. This is why the following files are not %ghost
-%attr(755,root,root)%{_libdir}/%{name}/libdovecot.so.0
-%attr(755,root,root)%{_libdir}/%{name}/libdovecot-lda.so.0
-%attr(755,root,root)%{_libdir}/%{name}/libdovecot-login.so.0
-%attr(755,root,root)%{_libdir}/%{name}/libdovecot-storage.so.0
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot.so.0
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so.0
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so.0
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so.0
