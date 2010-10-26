@@ -189,7 +189,7 @@ install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
 
 touch $RPM_BUILD_ROOT/etc/security/blacklist.imap
 
-rm $RPM_BUILD_ROOT%{_libdir}/%{name}/plugins{,/*}/*.la
+find $RPM_BUILD_ROOT%{_libdir}/%{name} -name '*.la' | xargs rm
 
 mv $RPM_BUILD_ROOT%{_libdir}/%{name}/dovecot-config $RPM_BUILD_ROOT%{_libdir}/%{name}-devel
 
