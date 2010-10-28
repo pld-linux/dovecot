@@ -1,5 +1,3 @@
-# TODO
-# - use %service macros
 #
 # Conditional build:
 %bcond_without	gssapi	# without GSSAPI support
@@ -195,7 +193,8 @@ find $RPM_BUILD_ROOT%{_libdir}/%{name} -name '*.la' | xargs rm
 
 mv $RPM_BUILD_ROOT%{_libdir}/%{name}/dovecot-config $RPM_BUILD_ROOT%{_libdir}/%{name}-devel
 
-rm -r $RPM_BUILD_ROOT%{_docdir}/%{name}
+rm -rf $RPM_BUILD_ROOT%{_docdir}/%{name}
+rm -rf $RPM_BUILD_ROOT%{_sysconfdir}/%{name}/README
 
 %clean
 rm -rf $RPM_BUILD_ROOT
