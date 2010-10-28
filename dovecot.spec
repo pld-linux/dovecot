@@ -1,5 +1,5 @@
 # TODO:
-# - use %service macros
+# - use service macros
 #
 # Conditional build:
 %bcond_without	gssapi	# without GSSAPI support
