@@ -1,5 +1,3 @@
-# TODO:
-# - use service macros
 #
 # Conditional build:
 %bcond_without	gssapi	# without GSSAPI support
@@ -13,7 +11,7 @@ Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
 Version:	2.0.6
-Release:	2
+Release:	3
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
@@ -209,17 +207,11 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 /sbin/chkconfig --add dovecot
-if [ -f /var/lock/subsys/dovecot ]; then
-	/etc/rc.d/init.d/dovecot restart >&2
-else
-	echo "Run \"/etc/rc.d/init.d/dovecot start\" to start dovecot daemon."
-fi
+%service sshd reload "dovecot"
 
 %preun
 if [ "$1" = "0" ]; then
-	if [ -f /var/lock/subsys/dovecot ]; then
-		/etc/rc.d/init.d/dovecot stop >&2
-	fi
+	%service dovecot stop
 	/sbin/chkconfig --del dovecot
 fi
 
