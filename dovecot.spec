@@ -207,7 +207,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 /sbin/chkconfig --add dovecot
-%service dovecot reload "dovecot"
+%service dovecot reload
 
 %preun
 if [ "$1" = "0" ]; then
