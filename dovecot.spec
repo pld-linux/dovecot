@@ -11,7 +11,7 @@ Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
 Version:	2.0.6
-Release:	5
+Release:	6
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
@@ -225,6 +225,13 @@ fi
 
 %post	libs -p /sbin/ldconfig
 %postun	libs -p /sbin/ldconfig
+
+%triggerin -- pam
+# restart devocot if pam is upgraded
+# (dovecot is linked with old libpam but tries to open modules linked with new libpam)
+if [ "$2" != 1 ]; then
+	%service -q dovecot restart
+fi
 
 %triggerpostun -- dovecot < 1:2.0.0
 # upgrading dovecot < 1.1
