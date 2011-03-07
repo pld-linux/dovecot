@@ -10,13 +10,13 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	2.0.9
+Version:	2.0.11
 Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/2.0/%{name}-%{version}.tar.gz
-# Source0-md5:	3a8692ba9e6f680436f6e44f6f6795f1
+# Source0-md5:	088a850d6583a7ec0a8074ce929b3496
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
@@ -322,6 +322,7 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so
 %{_libdir}/%{name}-devel
 %{_includedir}/%{name}
@@ -333,10 +334,12 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot.so.0.0.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so.0.0.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so.0.0.0
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so.0.0.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so.0.0.0
 # Note: we are in %{_libdir}/dovecot, ldconfig does not look into this
 # directory. This is why the following files are not %ghost
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so.0
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so.0
