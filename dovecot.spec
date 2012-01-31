@@ -20,6 +20,7 @@ Source0:	http://dovecot.org/releases/2.0/%{name}-%{version}.tar.gz
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
+Source4:	%{name}.tmpfiles
 Patch0:		%{name}-config.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
@@ -175,8 +176,9 @@ touch config.rpath
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT/etc/{pam.d,rc.d/init.d,sysconfig,security}
-install -d $RPM_BUILD_ROOT{/var/lib/dovecot,/var/run/dovecot/login}
+install -d $RPM_BUILD_ROOT/etc/{pam.d,rc.d/init.d,sysconfig,security} \
+	$RPM_BUILD_ROOT{/var/lib/dovecot,/var/run/dovecot/login} \
+	$RPM_BUILD_ROOT/usr/lib/tmpfiles.d
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
@@ -186,6 +188,7 @@ mv -f $RPM_BUILD_ROOT%{_datadir}/doc/%{name}/example-config/* $RPM_BUILD_ROOT%{_
 cp -a %{SOURCE1} $RPM_BUILD_ROOT/etc/pam.d/%{name}
 install -p %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
 cp -a %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
+install %{SOURCE4} $RPM_BUILD_ROOT/usr/lib/tmpfiles.d/%{name}.conf
 
 touch $RPM_BUILD_ROOT/etc/security/blacklist.imap
 
@@ -193,8 +196,8 @@ find $RPM_BUILD_ROOT%{_libdir}/%{name} -name '*.la' | xargs rm
 
 mv $RPM_BUILD_ROOT%{_libdir}/%{name}/dovecot-config $RPM_BUILD_ROOT%{_libdir}/%{name}-devel
 
-rm -rf $RPM_BUILD_ROOT%{_docdir}/%{name}
-rm -rf $RPM_BUILD_ROOT%{_sysconfdir}/%{name}/README
+%{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
+%{__rm} -r $RPM_BUILD_ROOT%{_sysconfdir}/%{name}/README
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -309,6 +312,7 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/plugins/dict/*.so
 %dir %{_libdir}/%{name}/plugins/doveadm
 %attr(755,root,root) %{_libdir}/%{name}/plugins/doveadm/*.so
+/usr/lib/tmpfiles.d/%{name}.conf
 %dir /var/lib/dovecot
 %dir /var/run/dovecot
 %attr(750,root,dovenull) %dir /var/run/dovecot/login
