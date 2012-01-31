@@ -1,0 +1,21 @@
+--- dovecot-2.0.16/Makefile.am~	2012-01-31 14:21:23.717655182 +0100
++++ dovecot-2.0.16/Makefile.am	2012-01-31 14:24:01.384328961 +0100
+@@ -21,7 +21,8 @@
+ 	dovecot-config
+ 
+ nodist_pkginclude_HEADERS = config.h
+-pkglib_DATA = $(datafiles)
++pkgdatadir = $(pkglibdir)
++pkgdata_DATA = $(datafiles)
+ 
+ if MAINTAINER_MODE
+ ChangeLog: .hg/dirstate
+@@ -61,7 +61,7 @@
+ EXTRA_DIST += dovecot.socket dovecot.service.in
+ endif
+ 
+-install-exec-hook:
++install-data-hook:
+ 	rm $(DESTDIR)$(pkglibdir)/dovecot-config && \
+ 	grep -v '^LIBDOVECOT_.*_INCLUDE' dovecot-config | \
+ 	grep -v '^LIBDOVECOT.*_DEPS' | sed \
