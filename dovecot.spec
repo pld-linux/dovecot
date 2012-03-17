@@ -10,19 +10,18 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	2.1.1
+Version:	2.1.3
 Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/2.1/%{name}-%{version}.tar.gz
-# Source0-md5:	db41a4de848d2bc834c30af0eb5575fd
+# Source0-md5:	a0e25243862c61de6274cf7d682a76ec
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
 Source4:	%{name}.tmpfiles
 Patch0:		%{name}-config.patch
-Patch1:		%{name}-am.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -145,7 +144,6 @@ Współdzielone biblioteki Dovecota.
 %prep
 %setup -q
 %patch0 -p1
-%patch1 -p1
 
 %{__sed} -i 's,/usr/lib/dovecot,%{_libdir}/dovecot,g' doc/example-config/*.conf doc/example-config/conf.d/*.conf
 
@@ -283,6 +281,7 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.imap
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{name}
 %attr(754,root,root) /etc/rc.d/init.d/%{name}
+%attr(755,root,root) %{_libdir}/%{name}/aggregator
 %attr(755,root,root) %{_libdir}/%{name}/anvil
 %attr(755,root,root) %{_libdir}/%{name}/auth
 %attr(755,root,root) %{_libdir}/%{name}/checkpassword-reply
@@ -306,6 +305,7 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/pop3
 %attr(755,root,root) %{_libdir}/%{name}/pop3-login
 %attr(755,root,root) %{_libdir}/%{name}/rawlog
+%attr(755,root,root) %{_libdir}/%{name}/replicator
 %attr(755,root,root) %{_libdir}/%{name}/script
 %attr(755,root,root) %{_libdir}/%{name}/script-login
 %attr(755,root,root) %{_libdir}/%{name}/ssl-params
