@@ -1,21 +1,32 @@
---- dovecot-2.0.16/Makefile.am~	2012-01-31 14:21:23.717655182 +0100
-+++ dovecot-2.0.16/Makefile.am	2012-01-31 14:24:01.384328961 +0100
-@@ -21,7 +21,8 @@
- 	dovecot-config
- 
- nodist_pkginclude_HEADERS = config.h
--pkglib_DATA = $(datafiles)
-+pkgdatadir = $(pkglibdir)
-+pkgdata_DATA = $(datafiles)
- 
- if MAINTAINER_MODE
- ChangeLog: .hg/dirstate
-@@ -61,7 +61,7 @@
- EXTRA_DIST += dovecot.socket dovecot.service.in
+--- dovecot-2.0.21/Makefile.am~	2012-03-22 17:07:32.000000000 +0100
++++ dovecot-2.0.21/Makefile.am	2012-06-29 23:27:37.966872653 +0200
+@@ -59,7 +59,7 @@
  endif
  
--install-exec-hook:
-+install-data-hook:
- 	rm $(DESTDIR)$(pkglibdir)/dovecot-config && \
+ install-exec-hook:
+-	$(mkdir_p) $(DESTDIR)$(pkglibdir); \
++	$(MKDIR_P) $(DESTDIR)$(pkglibdir); \
  	grep -v '^LIBDOVECOT_.*_INCLUDE' dovecot-config | \
  	grep -v '^LIBDOVECOT.*_DEPS' | sed \
+ 	-e "s|^\(LIBDOVECOT\)=.*$$|\1='-L$(pkglibdir) -ldovecot'|" \
+--- dovecot-2.0.21/src/lib-sql/Makefile.am~	2011-12-13 12:38:27.000000000 +0100
++++ dovecot-2.0.21/src/lib-sql/Makefile.am	2012-06-29 23:30:52.535098621 +0200
+@@ -103,7 +103,7 @@
+ if SQL_PLUGINS
+ install-exec-local:
+ 	for d in auth dict; do \
+-	  $(mkdir_p) $(DESTDIR)$(moduledir)/$$d; \
++	  $(MKDIR_P) $(DESTDIR)$(moduledir)/$$d; \
+ 	  for driver in $(SQL_DRIVER_PLUGINS); do \
+ 	    rm -f $(DESTDIR)$(moduledir)/$$d/libdriver_$$driver.so; \
+ 	    $(LN_S) ../libdriver_$$driver.so $(DESTDIR)$(moduledir)/$$d; \
+--- dovecot-2.0.21/doc/example-config/Makefile.am~	2011-12-13 12:38:27.000000000 +0100
++++ dovecot-2.0.21/doc/example-config/Makefile.am	2012-06-29 23:31:15.439007899 +0200
+@@ -22,6 +22,6 @@
+ 	README.in
+ 
+ install-data-local:
+-	$(mkdir_p) $(DESTDIR)/$(pkgsysconfdir)
++	$(MKDIR_P) $(DESTDIR)/$(pkgsysconfdir)
+ 
+ CLEANFILES = README
