@@ -10,13 +10,13 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	2.1.16
+Version:	2.2.2
 Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
-Source0:	http://dovecot.org/releases/2.1/%{name}-%{version}.tar.gz
-# Source0-md5:	72abf618cfa678194f9338f6c0aeb47d
+Source0:	http://dovecot.org/releases/2.2/%{name}-%{version}.tar.gz
+# Source0-md5:	e6c011b4bbddf19e79205d012723449a
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
@@ -296,6 +296,9 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/gdbhelper
 %attr(755,root,root) %{_libdir}/%{name}/imap
 %attr(755,root,root) %{_libdir}/%{name}/imap-login
+%attr(755,root,root) %{_libdir}/%{name}/imap-urlauth
+%attr(755,root,root) %{_libdir}/%{name}/imap-urlauth-login
+%attr(755,root,root) %{_libdir}/%{name}/imap-urlauth-worker
 %attr(755,root,root) %{_libdir}/%{name}/indexer
 %attr(755,root,root) %{_libdir}/%{name}/indexer-worker
 %attr(755,root,root) %{_libdir}/%{name}/ipc
@@ -333,10 +336,10 @@ fi
 %files devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot.so
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-compression.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so
-%attr(755,root,root) %{_libdir}/%{name}/libdovecot-ssl.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so
 %{_libdir}/%{name}-devel
 %{_includedir}/%{name}
@@ -346,16 +349,16 @@ fi
 %defattr(644,root,root,755)
 %dir %{_libdir}/%{name}
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot.so.0.0.0
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-compression.so.0.0.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so.0.0.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so.0.0.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so.0.0.0
-%attr(755,root,root) %{_libdir}/%{name}/libdovecot-ssl.so.0.0.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so.0.0.0
 # Note: we are in %{_libdir}/dovecot, ldconfig does not look into this
 # directory. This is why the following files are not %ghost
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot.so.0
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-compression.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so.0
-%attr(755,root,root) %{_libdir}/%{name}/libdovecot-ssl.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so.0
