@@ -11,7 +11,7 @@ Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
 Version:	2.2.4
-Release:	1
+Release:	2
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
@@ -37,6 +37,7 @@ BuildRequires:	openssl-devel >= 0.9.7d
 BuildRequires:	pam-devel
 BuildRequires:	pkgconfig
 %{?with_pgsql:BuildRequires:	postgresql-devel}
+BuildRequires:	rpmbuild(macros) >= 1.647
 BuildRequires:	sed >= 4.0
 %{?with_sqlite:BuildRequires:	sqlite3-devel}
 BuildRequires:	zlib-devel
@@ -171,7 +172,7 @@ touch config.rpath
 	--with-moduledir=%{_libdir}/%{name}/plugins \
 	--with-ssldir=/var/lib/openssl \
 	--sysconfdir=%{_sysconfdir} \
-	--with-systemdsystemunitdir=/lib/systemd/system
+	--with-systemdsystemunitdir=%{systemdunitdir}
 
 %{__make}
 
@@ -212,12 +213,14 @@ rm -rf $RPM_BUILD_ROOT
 %post
 /sbin/chkconfig --add dovecot
 %service dovecot restart
+%systemd_post dovecot.socket dovecot.service
 
 %preun
 if [ "$1" = "0" ]; then
 	%service dovecot stop
 	/sbin/chkconfig --del dovecot
 fi
+%systemd_preun dovecot.service dovecot.socket
 
 %postun
 if [ "$1" = "0" ]; then
@@ -226,6 +229,7 @@ if [ "$1" = "0" ]; then
 	%userremove dovenull
 	%groupremove dovenull
 fi
+%systemd_reload
 
 %post	libs -p /sbin/ldconfig
 %postun	libs -p /sbin/ldconfig
@@ -262,6 +266,9 @@ done
 if [ "$i" -eq 1 ]; then
 	echo "Please verify contents of %{_sysconfdir}/%{name}/* files."
 fi
+
+%triggerpostun -- %{name} < 1:2.2.4-2
+%systemd_trigger dovecot.service dovecot.socket
 
 %files
 %defattr(644,root,root,755)
@@ -323,6 +330,8 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/plugins/dict/*.so
 %dir %{_libdir}/%{name}/plugins/doveadm
 %attr(755,root,root) %{_libdir}/%{name}/plugins/doveadm/*.so
+%{systemdunitdir}/dovecot.service
+%{systemdunitdir}/dovecot.socket
 /usr/lib/tmpfiles.d/%{name}.conf
 %dir /var/lib/dovecot
 %dir /var/run/dovecot
