@@ -1,0 +1,12 @@
+--- dovecot-1.2.17/Makefile.am~	2008-12-14 03:57:16.000000000 +0100
++++ dovecot-1.2.17/Makefile.am	2013-11-27 09:03:43.356086085 +0100
+@@ -20,7 +20,8 @@
+ 
+ if INSTALL_HEADERS
+   nodist_pkginclude_HEADERS = config.h
+-  pkglib_DATA = $(datafiles)
++  datafilesdir = $(pkglibdir)
++  datafiles_DATA = $(datafiles)
+ else
+   noinst_DATA = $(datafiles)
+ endif

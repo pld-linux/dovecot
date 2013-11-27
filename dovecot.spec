@@ -20,7 +20,9 @@ Source0:	http://dovecot.org/releases/1.2/%{name}-%{version}.tar.gz
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
+Source4:	%{name}.tmpfiles
 Patch0:		%{name}-config.patch
+Patch1:		%{name}-build.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -129,6 +131,7 @@ Pakiet programistyczny do tworzenia wtyczek dla dovecota.
 %prep
 %setup -q
 %patch0 -p1
+%patch1 -p1
 
 %{__sed} -i 's,/usr/lib/dovecot,%{_libdir}/dovecot,g' dovecot-example.conf
 
@@ -159,8 +162,9 @@ touch config.rpath
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT/etc/{pam.d,rc.d/init.d,sysconfig,security}
-install -d $RPM_BUILD_ROOT{/var/lib/dovecot,/var/run/dovecot/login}
+install -d $RPM_BUILD_ROOT/etc/{pam.d,rc.d/init.d,sysconfig,security} \
+	$RPM_BUILD_ROOT{/var/lib/dovecot,/var/run/dovecot/login} \
+	$RPM_BUILD_ROOT%{systemdtmpfilesdir}
 
 %{__make} install \
 	moduledir=%{_libdir}/%{name}/plugins \
@@ -171,6 +175,7 @@ mv -f $RPM_BUILD_ROOT%{_sysconfdir}/%{name}/{dovecot-example.conf,dovecot.conf}
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/pam.d/%{name}
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
+install %{SOURCE4} $RPM_BUILD_ROOT%{systemdtmpfilesdir}/%{name}.conf
 
 touch $RPM_BUILD_ROOT/etc/security/blacklist.imap
 
@@ -270,6 +275,7 @@ echo "Configuration change default_mail_env -> mail_location"
 %attr(755,root,root) %{_libdir}/%{name}/plugins/lda/*.so
 %dir %{_libdir}/%{name}/plugins/pop3
 %attr(755,root,root) %{_libdir}/%{name}/plugins/pop3/*.so
+%{systemdtmpfilesdir}/%{name}.conf
 %dir /var/lib/dovecot
 %dir /var/run/dovecot
 %attr(750,root,dovecot) %dir /var/run/dovecot/login
