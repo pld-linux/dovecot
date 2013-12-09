@@ -11,7 +11,7 @@ Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
 Version:	2.2.9
-Release:	1
+Release:	2
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
@@ -196,8 +196,6 @@ touch $RPM_BUILD_ROOT/etc/security/blacklist.imap
 
 find $RPM_BUILD_ROOT%{_libdir}/%{name} -name '*.la' | xargs rm
 
-mv $RPM_BUILD_ROOT%{_libdir}/%{name}/dovecot-config $RPM_BUILD_ROOT%{_libdir}/%{name}-devel
-
 %{__rm} -r $RPM_BUILD_ROOT%{_docdir}/%{name}
 %{__rm} -r $RPM_BUILD_ROOT%{_sysconfdir}/%{name}/README
 
@@ -350,7 +348,7 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so
-%{_libdir}/%{name}-devel
+%{_libdir}/%{name}/%{name}-config
 %{_includedir}/%{name}
 %{_aclocaldir}/dovecot.m4
 
