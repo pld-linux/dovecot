@@ -1,0 +1,12 @@
+diff -dur dovecot-2.2.9.orig/Makefile.am dovecot-2.2.9/Makefile.am
+--- dovecot-2.2.9.orig/Makefile.am	2013-11-24 14:37:39.000000000 +0100
++++ dovecot-2.2.9/Makefile.am	2013-12-09 15:47:40.000000000 +0100
+@@ -64,7 +64,7 @@
+ 	$(mkdir_p) $(DESTDIR)$(pkglibdir); \
+ 	grep -v '^LIBDOVECOT_.*_INCLUDE' dovecot-config | \
+ 	grep -v '^LIBDOVECOT.*_DEPS' | sed \
+-	-e "s|^\(LIBDOVECOT\)=.*$$|\1='-L$(pkglibdir) -ldovecot'|" \
++	-e "s|^\(LIBDOVECOT\)=.*$$|\1='-rpath $(pkglibdir) -L$(pkglibdir) -ldovecot'|" \
+ 	-e "s|^\(LIBDOVECOT_LOGIN\)=.*$$|\1='-ldovecot-login $(SSL_LIBS)'|" \
+ 	-e "s|^\(LIBDOVECOT_SQL\)=.*$$|\1=-ldovecot-sql|" \
+ 	-e "s|^\(LIBDOVECOT_COMPRESS\)=.*$$|\1=-ldovecot-compression|" \
