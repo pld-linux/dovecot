@@ -16,7 +16,7 @@ Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/2.2/%{name}-%{version}.tar.gz
-# Source0-md5:	d53d207727df99e4362a3787223c6fa3
+# Source0-md5:	25395269fa2e0525e2d144d71d0450eb
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
