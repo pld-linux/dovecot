@@ -10,20 +10,19 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	2.2.13
-Release:	3
+Version:	2.2.14
+Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/2.2/%{name}-%{version}.tar.gz
-# Source0-md5:	a3eb1c0b1822c4f2b0fe9247776baa71
+# Source0-md5:	03315255920ee1c4b11039945246a8af
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
 Source4:	%{name}.tmpfiles
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-rpath.patch
-Patch2:		%{name}-auth-settings.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -148,7 +147,6 @@ Współdzielone biblioteki Dovecota.
 %setup -q
 %patch0 -p1
 %patch1 -p1
-%patch2 -p1
 
 %{__sed} -i 's,/usr/lib/dovecot,%{_libdir}/dovecot,g' doc/example-config/*.conf doc/example-config/conf.d/*.conf
 
@@ -348,6 +346,7 @@ fi
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-compression.so
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-dsync.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so
@@ -359,8 +358,10 @@ fi
 %files libs
 %defattr(644,root,root,755)
 %dir %{_libdir}/%{name}
+
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot.so.0.0.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-compression.so.0.0.0
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-dsync.so.0.0.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so.0.0.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so.0.0.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so.0.0.0
@@ -369,6 +370,7 @@ fi
 # directory. This is why the following files are not %ghost
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-compression.so.0
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-dsync.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so.0
