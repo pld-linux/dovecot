@@ -6,17 +6,18 @@
 %bcond_without	pgsql	# without PostgreSQL auth
 %bcond_without	sqlite	# without SQLite3 auth
 %bcond_without	sasl	# without SASL auth
+%bcond_without	tests	# tests
 
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	2.2.14
+Version:	2.2.15
 Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/2.2/%{name}-%{version}.tar.gz
-# Source0-md5:	03315255920ee1c4b11039945246a8af
+# Source0-md5:	c6c176943bd832c780fbb5d2f8850952
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
@@ -177,6 +178,8 @@ touch config.rpath
 	--with-systemdsystemunitdir=%{systemdunitdir}
 
 %{__make}
+
+%{?with_tests:%{__make} check}
 
 %install
 rm -rf $RPM_BUILD_ROOT
