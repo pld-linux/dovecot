@@ -29,7 +29,7 @@ URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	bzip2-devel
-BuildRequires:	clucene-core-devel
+BuildRequires:	clucene-core-devel >= 2.3.3.4
 BuildRequires:	curl-devel
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
 BuildRequires:	expat-devel
