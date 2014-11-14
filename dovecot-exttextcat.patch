@@ -1,0 +1,23 @@
+--- dovecot-2.2.15/configure.ac~	2014-10-25 05:57:08.000000000 +0200
++++ dovecot-2.2.15/configure.ac	2014-11-14 08:49:02.888452270 +0100
+@@ -2747,10 +2747,16 @@
+ 	have_lucene_textcat=yes
+ 	AC_DEFINE(HAVE_LUCENE_TEXTCAT,, Define if you want textcat support for CLucene)
+       ], [
+-        AC_CHECK_LIB(exttextcat, special_textcat_Init, [
+-          have_lucene_exttextcat=yes
+-          AC_DEFINE(HAVE_LUCENE_EXTTEXTCAT,, Define if you want textcat (Debian version) support for CLucene)
+-        ])
++	if test "$PKG_CONFIG" != "" && $PKG_CONFIG --exists libexttextcat 2>/dev/null; then
++		PKG_CHECK_MODULES(LIBEXTTEXTCAT, libexttextcat)
++		LIBS="$LIBS $LIBEXTTEXTCAT_LIBS"
++		AC_DEFINE(HAVE_LUCENE_EXTTEXTCAT,, Define if you want textcat (LibreOffice version) support for CLucene)
++	else
++        	AC_CHECK_LIB(exttextcat, special_textcat_Init, [
++          		have_lucene_exttextcat=yes
++          		AC_DEFINE(HAVE_LUCENE_EXTTEXTCAT,, Define if you want textcat (Debian version) support for CLucene)
++        	])
++	fi
+       ])
+     ], [
+       if test $want_stemmer = yes; then

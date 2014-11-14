@@ -12,7 +12,7 @@ Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
 Version:	2.2.15
-Release:	1
+Release:	2
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
@@ -24,15 +24,22 @@ Source3:	%{name}.sysconfig
 Source4:	%{name}.tmpfiles
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-rpath.patch
+Patch2:		%{name}-exttextcat.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	bzip2-devel
+BuildRequires:	clucene-core-devel
+BuildRequires:	curl-devel
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
+BuildRequires:	expat-devel
 BuildRequires:	gettext-devel
 %{?with_gssapi:BuildRequires:	heimdal-devel}
 BuildRequires:	libcap-devel
+BuildRequires:	libstemmer-devel
+BuildRequires:	libexttextcat-devel
 BuildRequires:	libtool
+BuildRequires:	lz4-devel
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.3}
 BuildRequires:	openssl-devel >= 0.9.7d
@@ -148,6 +155,7 @@ Współdzielone biblioteki Dovecota.
 %setup -q
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 
 %{__sed} -i 's,/usr/lib/dovecot,%{_libdir}/dovecot,g' doc/example-config/*.conf doc/example-config/conf.d/*.conf
 
@@ -159,6 +167,7 @@ touch config.rpath
 %{__autoheader}
 %{__automake}
 %configure \
+	CPPFLAGS="%{rpmcppflags} -I/usr/include/libstemmer" \
 	--disable-static \
 	%{?debug:--enable-debug} \
 	%{?with_ldap:--with-ldap=yes} \
@@ -166,6 +175,9 @@ touch config.rpath
 	%{?with_pgsql:--with-pgsql} \
 	%{?with_sqlite:--with-sqlite} \
 	%{?with_gssapi:--with-gssapi=plugin} \
+	--with-lucene \
+	--with-stemmer \
+	--with-solr \
 	--with-sql=plugin \
 	--with-pam \
 	--with-zlib \
