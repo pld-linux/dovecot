@@ -167,6 +167,7 @@ touch config.rpath
 %{__autoheader}
 %{__automake}
 %configure \
+	ac_cv_prog_VALGRIND=no \
 	CPPFLAGS="%{rpmcppflags} -I/usr/include/libstemmer" \
 	--disable-static \
 	%{?debug:--enable-debug} \
