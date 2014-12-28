@@ -33,7 +33,7 @@ BuildRequires:	clucene-core-devel >= 2.3.3.4
 BuildRequires:	curl-devel
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel >= 2.0}
 BuildRequires:	expat-devel
-BuildRequires:	gettext-devel
+BuildRequires:	gettext-tools
 %{?with_gssapi:BuildRequires:	heimdal-devel}
 BuildRequires:	libcap-devel
 BuildRequires:	libstemmer-devel
