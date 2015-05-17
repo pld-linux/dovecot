@@ -11,20 +11,20 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	2.2.15
-Release:	3
+Version:	2.2.18
+Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/2.2/%{name}-%{version}.tar.gz
-# Source0-md5:	c6c176943bd832c780fbb5d2f8850952
+# Source0-md5:	1e42eb3b69544c447ad882d7858f3630
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
 Source4:	%{name}.tmpfiles
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-rpath.patch
-Patch2:		%{name}-exttextcat.patch
+
 Patch3:		%{name}-disableSSLv3.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
@@ -156,7 +156,7 @@ Współdzielone biblioteki Dovecota.
 %setup -q
 %patch0 -p1
 %patch1 -p1
-%patch2 -p1
+
 %patch3 -p2
 
 %{__sed} -i 's,/usr/lib/dovecot,%{_libdir}/dovecot,g' doc/example-config/*.conf doc/example-config/conf.d/*.conf
@@ -348,6 +348,9 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/plugins/dict/*.so
 %dir %{_libdir}/%{name}/plugins/doveadm
 %attr(755,root,root) %{_libdir}/%{name}/plugins/doveadm/*.so
+%dir %{_libdir}/%{name}/plugins/stats
+%attr(755,root,root) %{_libdir}/%{name}/plugins/stats/*.so
+%{_datadir}/dovecot
 %{systemdunitdir}/dovecot.service
 %{systemdunitdir}/dovecot.socket
 /usr/lib/tmpfiles.d/%{name}.conf

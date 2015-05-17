@@ -1,10 +1,9 @@
-diff -dur dovecot-2.2.9.orig/Makefile.am dovecot-2.2.9/Makefile.am
---- dovecot-2.2.9.orig/Makefile.am	2013-11-24 14:37:39.000000000 +0100
-+++ dovecot-2.2.9/Makefile.am	2013-12-09 15:47:40.000000000 +0100
-@@ -64,7 +64,7 @@
- 	$(mkdir_p) $(DESTDIR)$(pkglibdir); \
+--- dovecot-2.2.18/Makefile.am~	2015-02-19 12:44:40.000000000 +0100
++++ dovecot-2.2.18/Makefile.am	2015-05-17 08:43:25.681245560 +0200
+@@ -64,7 +64,7 @@ install-exec-hook:
  	grep -v '^LIBDOVECOT_.*_INCLUDE' dovecot-config | \
  	grep -v '^LIBDOVECOT.*_DEPS' | sed \
+ 	-e "s|^\(DOVECOT_INSTALLED\)=.*$$|\1=yes|" \
 -	-e "s|^\(LIBDOVECOT\)=.*$$|\1='-L$(pkglibdir) -ldovecot'|" \
 +	-e "s|^\(LIBDOVECOT\)=.*$$|\1='-rpath $(pkglibdir) -L$(pkglibdir) -ldovecot'|" \
  	-e "s|^\(LIBDOVECOT_LOGIN\)=.*$$|\1='-ldovecot-login $(SSL_LIBS)'|" \
