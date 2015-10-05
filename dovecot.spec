@@ -11,13 +11,13 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	2.2.18
-Release:	2
+Version:	2.2.19
+Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/2.2/%{name}-%{version}.tar.gz
-# Source0-md5:	1e42eb3b69544c447ad882d7858f3630
+# Source0-md5:	95591b6556413edc2f0b160fb469d04c
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
@@ -37,6 +37,7 @@ BuildRequires:	expat-devel
 BuildRequires:	gettext-tools
 %{?with_gssapi:BuildRequires:	heimdal-devel}
 BuildRequires:	libcap-devel
+BuildRequires:	libicu-devel
 BuildRequires:	libstemmer-devel
 BuildRequires:	libexttextcat-devel
 BuildRequires:	libtool
@@ -50,6 +51,7 @@ BuildRequires:	pkgconfig
 BuildRequires:	rpmbuild(macros) >= 1.647
 BuildRequires:	sed >= 4.0
 %{?with_sqlite:BuildRequires:	sqlite3-devel}
+BuildRequires:	xz-devel
 BuildRequires:	zlib-devel
 Requires(post,preun):	/sbin/chkconfig
 Requires(postun):	/usr/sbin/groupdel
@@ -320,6 +322,7 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/dovecot-lda
 %attr(755,root,root) %{_libdir}/%{name}/gdbhelper
 %attr(755,root,root) %{_libdir}/%{name}/imap
+%attr(755,root,root) %{_libdir}/%{name}/imap-hibernate
 %attr(755,root,root) %{_libdir}/%{name}/imap-login
 %attr(755,root,root) %{_libdir}/%{name}/imap-urlauth
 %attr(755,root,root) %{_libdir}/%{name}/imap-urlauth-login
