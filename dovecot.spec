@@ -11,13 +11,13 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	2.2.23
+Version:	2.2.24
 Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/2.2/%{name}-%{version}.tar.gz
-# Source0-md5:	0d2855c19b0603b417cd70613b4a9f36
+# Source0-md5:	91576b3411b436234ca5f63e1bbab60d
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
@@ -373,6 +373,7 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-dsync.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-fts.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so
+%{?with_ldap:%attr(755,root,root) %{_libdir}/%{name}/libdovecot-ldap.so}
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so
@@ -389,6 +390,7 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-dsync.so.0.0.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-fts.so.0.0.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so.0.0.0
+%{?with_ldap:%attr(755,root,root) %{_libdir}/%{name}/libdovecot-ldap.so.0.0.0}
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so.0.0.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so.0.0.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so.0.0.0
@@ -399,6 +401,7 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-dsync.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-fts.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so.0
+%{?with_ldap:%attr(755,root,root) %{_libdir}/%{name}/libdovecot-ldap.so.0}
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so.0
