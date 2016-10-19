@@ -1,0 +1,72 @@
+commit 8e104e2bce03c1cb410b1aff5100a0e1074c11ca
+Author: Aki Tuomi <aki.tuomi@dovecot.fi>
+Date:   Mon Oct 17 23:25:27 2016 +0300
+
+    lib: Add null_strcasecmp
+
+diff --git a/src/lib/strfuncs.c b/src/lib/strfuncs.c
+index 602ceb4..df572ff 100644
+--- a/src/lib/strfuncs.c
++++ b/src/lib/strfuncs.c
+@@ -434,6 +434,16 @@ int null_strcmp(const char *s1, const char *s2)
+ 	return strcmp(s1, s2);
+ }
+ 
++int null_strcasecmp(const char *s1, const char *s2)
++{
++        if (s1 == NULL)
++                return s2 == NULL ? 0 : -1;
++        if (s2 == NULL)
++                return 1;
++
++        return strcasecmp(s1, s2);
++}
++
+ int i_memcasecmp(const void *p1, const void *p2, size_t size)
+ {
+ 	const unsigned char *s1 = p1;
+diff --git a/src/lib/strfuncs.h b/src/lib/strfuncs.h
+index c84533b..65203f2 100644
+--- a/src/lib/strfuncs.h
++++ b/src/lib/strfuncs.h
+@@ -60,6 +60,7 @@ const char *t_str_rtrim(const char *str, const char *chars);
+ /*const char *t_str_trim(const char *str, const char *chars);*/
+ 
+ int null_strcmp(const char *s1, const char *s2) ATTR_PURE;
++int null_strcasecmp(const char *s1, const char *s2) ATTR_PURE;
+ int bsearch_strcmp(const char *key, const char *const *member) ATTR_PURE;
+ int bsearch_strcasecmp(const char *key, const char *const *member) ATTR_PURE;
+ int i_memcasecmp(const void *p1, const void *p2, size_t size) ATTR_PURE;
+From c19c44f87ef3fe40cae4be9a86ee9327a7370e46 Mon Sep 17 00:00:00 2001
+From: Aki Tuomi <aki.tuomi@dovecot.fi>
+Date: Sat, 15 Oct 2016 23:04:35 +0300
+Subject: [PATCH] config: Compare local_name case insensitive
+
+DNS and certificate names should be compared
+case insensitive.
+---
+ src/config/config-filter.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/config/config-filter.c b/src/config/config-filter.c
+index e8cc010..87a24da 100644
+--- a/src/config/config-filter.c
++++ b/src/config/config-filter.c
+@@ -36,7 +36,7 @@ static bool config_filter_match_rest(const struct config_filter *mask,
+ 	if (mask->local_name != NULL) {
+ 		if (filter->local_name == NULL)
+ 			return FALSE;
+-		if (strcmp(filter->local_name, mask->local_name) != 0)
++		if (strcasecmp(filter->local_name, mask->local_name) != 0)
+ 			return FALSE;
+ 	}
+ 	/* FIXME: it's not comparing full masks */
+@@ -82,7 +82,7 @@ bool config_filters_equal(const struct config_filter *f1,
+ 	if (!net_ip_compare(&f1->local_net, &f2->local_net))
+ 		return FALSE;
+ 
+-	if (null_strcmp(f1->local_name, f2->local_name) != 0)
++	if (null_strcasecmp(f1->local_name, f2->local_name) != 0)
+ 		return FALSE;
+ 
+ 	return TRUE;
