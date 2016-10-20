@@ -244,3 +244,37 @@ index 0f17fad..a17ce66 100644
  	ctx = ssl_server_context_get(client->set, client->ssl_set);
  	SSL_set_SSL_CTX(ssl, ctx->ctx);
  }
+>From 066edb5e5c14a05c90e9ae63f0b76fcfd9c1149e Mon Sep 17 00:00:00 2001
+From: Aki Tuomi <aki.tuomi@dovecot.fi>
+Date: Thu, 20 Oct 2016 16:06:27 +0300
+Subject: [PATCH] login-common: Include local_name in login_var_expand_table
+
+This way it can be used in login_log_format
+---
+ src/login-common/client-common.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/login-common/client-common.c b/src/login-common/client-common.c
+index d0a9c52..5964ec9 100644
+--- a/src/login-common/client-common.c
++++ b/src/login-common/client-common.c
+@@ -507,6 +507,7 @@ static struct var_expand_table login_var_expand_empty_tab[] = {
+ 	{ '\0', NULL, "auth_username" },
+ 	{ '\0', NULL, "auth_domain" },
+ 	{ '\0', NULL, "listener" },
++	{ '\0', NULL, "local_name" },
+ 	{ '\0', NULL, NULL }
+ };
+ 
+@@ -581,6 +582,7 @@ get_var_expand_table(struct client *client)
+ 		tab[24].value = tab[21].value;
+ 	}
+ 	tab[25].value = client->listener_name;
++	tab[26].value = client->local_name == NULL ? "" : client->local_name;
+ 	return tab;
+ }
+ 
+-- 
+2.7.4
+
+
