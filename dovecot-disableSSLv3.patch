@@ -1,11 +1,9 @@
-diff -urN dovecot/dovecot-2.2.15/doc/example-config/conf.d/10-ssl.conf dovecotorg/dovecot-2.2.15/doc/example-config/conf.d/10-ssl.conf
---- dovecot/dovecot-2.2.15/doc/example-config/conf.d/10-ssl.conf	2014-10-03 16:36:00.000000000 +0200
-+++ dovecotorg/dovecot-2.2.15/doc/example-config/conf.d/10-ssl.conf	2015-01-16 15:52:55.917727519 +0100
-@@ -46,10 +46,10 @@
- #ssl_dh_parameters_length = 1024
+--- dovecot-2.2.27/doc/example-config/conf.d/10-ssl.conf~	2016-12-03 21:37:57.000000000 +0100
++++ dovecot-2.2.27/doc/example-config/conf.d/10-ssl.conf	2016-12-03 21:38:42.082007401 +0100
+@@ -47,9 +47,10 @@ ssl = no
  
  # SSL protocols to use
--#ssl_protocols = !SSLv2
+ #ssl_protocols = !SSLv3
 +ssl_protocols = !SSLv2 !SSLv3
  
  # SSL ciphers to use
