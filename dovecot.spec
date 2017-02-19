@@ -64,7 +64,10 @@ Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
 Requires:	pam >= 0.79.0
 Provides:	group(dovecot)
 Provides:	imapdaemon
+Provides:	pop3daemon
 Provides:	user(dovecot)
+# heimdal-daemons in PLD contained only "popper" (kerberized POP3 daemon)
+%{?with_gssapi:Obsoletes:	heimdal-daemons}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		no_install_post_check_so	1
@@ -131,6 +134,17 @@ Stan:
 - quota Maildir++ jest obsługiwana, ale twarda quota na systemach
   plików może być problematyczna
 
+%package libs
+Summary:	Dovecot shared libraries
+Summary(pl.UTF-8):	Współdzielone biblioteki Dovecota
+Group:		Development/Libraries
+
+%description libs
+Dovecot shared libraries.
+
+%description libs -l pl.UTF-8
+Współdzielone biblioteki Dovecota.
+
 %package devel
 Summary:	Development package for Dovecot plugins
 Summary(pl.UTF-8):	Pakiet programistyczny do tworzenia wtyczek dla Dovecota
@@ -142,17 +156,6 @@ Development package for Dovecot plugins.
 
 %description devel -l pl.UTF-8
 Pakiet programistyczny do tworzenia wtyczek dla Dovecota.
-
-%package libs
-Summary:	Dovecot shared libraries
-Summary(pl.UTF-8):	Współdzielone biblioteki Dovecota
-Group:		Development/Libraries
-
-%description libs
-Dovecot shared libraries.
-
-%description libs -l pl.UTF-8
-Współdzielone biblioteki Dovecota.
 
 %prep
 %setup -q
@@ -367,21 +370,6 @@ fi
 %{_mandir}/man1/dsync.1*
 %{_mandir}/man7/doveadm-search-query.7*
 
-%files devel
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/%{name}/libdovecot.so
-%attr(755,root,root) %{_libdir}/%{name}/libdovecot-compression.so
-%attr(755,root,root) %{_libdir}/%{name}/libdovecot-dsync.so
-%attr(755,root,root) %{_libdir}/%{name}/libdovecot-fts.so
-%attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so
-%{?with_ldap:%attr(755,root,root) %{_libdir}/%{name}/libdovecot-ldap.so}
-%attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so
-%attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so
-%attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so
-%{_libdir}/%{name}/%{name}-config
-%{_includedir}/%{name}
-%{_aclocaldir}/dovecot.m4
-
 %files libs
 %defattr(644,root,root,755)
 %dir %{_libdir}/%{name}
@@ -406,3 +394,18 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so.0
+
+%files devel
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot.so
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-compression.so
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-dsync.so
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-fts.so
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so
+%{?with_ldap:%attr(755,root,root) %{_libdir}/%{name}/libdovecot-ldap.so}
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so
+%{_libdir}/%{name}/%{name}-config
+%{_includedir}/%{name}
+%{_aclocaldir}/dovecot.m4
