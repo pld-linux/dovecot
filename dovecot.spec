@@ -36,6 +36,7 @@ BuildRequires:	curl-devel
 BuildRequires:	expat-devel
 BuildRequires:	gettext-tools
 %{?with_gssapi:BuildRequires:	heimdal-devel}
+BuildRequires:	libapparmor-devel
 BuildRequires:	libcap-devel
 BuildRequires:	libicu-devel
 BuildRequires:	libstemmer-devel
