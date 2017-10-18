@@ -12,7 +12,7 @@ Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
 Version:	2.2.33.1
-Release:	1
+Release:	2
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
@@ -176,7 +176,7 @@ touch config.rpath
 %{__automake}
 %configure \
 	ac_cv_prog_VALGRIND=no \
-	CPPFLAGS="%{rpmcppflags} -I/usr/include/libstemmer" \
+	CPPFLAGS="%{rpmcppflags} -I/usr/include/libstemmer -D_LINUX_QUOTA_VERSION=2" \
 	--disable-static \
 	%{?debug:--enable-debug} \
 	%{?with_ldap:--with-ldap=yes} \
