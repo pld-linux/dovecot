@@ -312,6 +312,9 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.imap
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{name}
 %attr(754,root,root) /etc/rc.d/init.d/%{name}
+%if "%{_libexecdir}" != "%{_libdir}"
+%dir %{_libexecdir}/%{name}
+%endif
 %attr(755,root,root) %{_libexecdir}/%{name}/aggregator
 %attr(755,root,root) %{_libexecdir}/%{name}/anvil
 %attr(755,root,root) %{_libexecdir}/%{name}/auth
