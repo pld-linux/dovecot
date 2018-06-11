@@ -23,11 +23,20 @@ else
 	exit 0
 fi
 
+if [ -n "${DOVECOT_CONF}" ]; then
+	if [ -f "${DOVECOT_CONF}" ]; then
+	  DOVECOT_CFG="-c ${DOVECOT_CONF}"
+	else
+	  echo "error: DOVECOT_CONF='$DOVECOT_CONF': not a file"
+	  exit 1
+	fi
+fi
+
 start() {
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/dovecot ]; then
 		msg_starting "Dovecot"
-		daemon /usr/sbin/dovecot
+		daemon /usr/sbin/dovecot $DOVECOT_CFG
 		RETVAL=$?
 		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/dovecot
 	else
