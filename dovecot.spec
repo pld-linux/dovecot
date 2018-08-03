@@ -11,21 +11,19 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	2.2.36
+Version:	2.3.2.1
 Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
-Source0:	http://dovecot.org/releases/2.2/%{name}-%{version}.tar.gz
-# Source0-md5:	a8d6492584025b2413e82ea48de3cd5f
+Source0:	http://dovecot.org/releases/2.3/%{name}-%{version}.tar.gz
+# Source0-md5:	77a7fa95b38bd6686e6191b2b3f2b87b
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
 Source4:	%{name}.tmpfiles
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-rpath.patch
-
-Patch3:		%{name}-disableSSLv3.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -162,8 +160,6 @@ Pakiet programistyczny do tworzenia wtyczek dla Dovecota.
 %setup -q
 %patch0 -p1
 %patch1 -p1
-
-%patch3 -p1
 
 %{__sed} -i 's,/usr/lib/dovecot,%{_libdir}/dovecot,g' doc/example-config/*.conf doc/example-config/conf.d/*.conf
 
@@ -340,6 +336,7 @@ fi
 %attr(755,root,root) %{_libexecdir}/%{name}/lmtp
 %attr(755,root,root) %{_libexecdir}/%{name}/log
 %attr(755,root,root) %{_libexecdir}/%{name}/maildirlock
+%attr(755,root,root) %{_libexecdir}/%{name}/old-stats
 %attr(755,root,root) %{_libexecdir}/%{name}/pop3
 %attr(755,root,root) %{_libexecdir}/%{name}/pop3-login
 %attr(755,root,root) %{_libexecdir}/%{name}/quota-status
@@ -347,8 +344,9 @@ fi
 %attr(755,root,root) %{_libexecdir}/%{name}/replicator
 %attr(755,root,root) %{_libexecdir}/%{name}/script
 %attr(755,root,root) %{_libexecdir}/%{name}/script-login
-%attr(755,root,root) %{_libexecdir}/%{name}/ssl-params
 %attr(755,root,root) %{_libexecdir}/%{name}/stats
+%attr(755,root,root) %{_libexecdir}/%{name}/submission
+%attr(755,root,root) %{_libexecdir}/%{name}/submission-login
 %attr(755,root,root) %{_libexecdir}/%{name}/xml2text
 %attr(755,root,root) %{_libdir}/%{name}/libdcrypt_openssl.so
 %dir %{_libdir}/%{name}/plugins
@@ -359,8 +357,8 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/plugins/dict/*.so
 %dir %{_libdir}/%{name}/plugins/doveadm
 %attr(755,root,root) %{_libdir}/%{name}/plugins/doveadm/*.so
-%dir %{_libdir}/%{name}/plugins/stats
-%attr(755,root,root) %{_libdir}/%{name}/plugins/stats/*.so
+%dir %{_libdir}/%{name}/plugins/old-stats
+%attr(755,root,root) %{_libdir}/%{name}/plugins/old-stats/*.so
 %{_datadir}/dovecot
 %{systemdunitdir}/dovecot.service
 %{systemdunitdir}/dovecot.socket
