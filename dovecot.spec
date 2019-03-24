@@ -2,6 +2,7 @@
 # Conditional build:
 %bcond_without	gssapi	# without GSSAPI support
 %bcond_without	ldap	# without LDAP auth
+%bcond_without	lua	# without Lua auth
 %bcond_without	mysql	# without MySQL auth
 %bcond_without	pgsql	# without PostgreSQL auth
 %bcond_without	sqlite	# without SQLite3 auth
@@ -12,7 +13,7 @@ Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
 Version:	2.3.5
-Release:	1
+Release:	2
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
@@ -40,6 +41,7 @@ BuildRequires:	libicu-devel
 BuildRequires:	libstemmer-devel
 BuildRequires:	libexttextcat-devel
 BuildRequires:	libtool
+%{?with_lua:BuildRequires:	lua53-devel}
 BuildRequires:	lz4-devel
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.3}
@@ -181,6 +183,7 @@ touch config.rpath
 	%{?with_pgsql:--with-pgsql} \
 	%{?with_sqlite:--with-sqlite} \
 	%{?with_gssapi:--with-gssapi=plugin} \
+	%{?with_lua:--with-lua=plugin} \
 	--with-lucene \
 	--with-stemmer \
 	--with-solr \
