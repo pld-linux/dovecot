@@ -1,11 +1,43 @@
---- src/lib/ostream-file.c.orig	2019-07-12 19:18:41 UTC
-+++ src/lib/ostream-file.c
-@@ -334,7 +334,7 @@ static void o_stream_tcp_flush_via_nodelay(struct file
+From 25028730cd1b76e373ff989625132d526eea2504 Mon Sep 17 00:00:00 2001
+From: Timo Sirainen <timo.sirainen@open-xchange.com>
+Date: Mon, 15 Jul 2019 10:14:23 +0300
+Subject: [PATCH] lib: ostream-file: Don't log any errors when setting
+ TCP_NODELAY
+
+It's likely never useful to log the error, and it seems more and more
+unexpected errors just keep popping up.
+---
+ src/lib/ostream-file.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/src/lib/ostream-file.c b/src/lib/ostream-file.c
+index e7e6f62d12..82bf729ac0 100644
+--- a/src/lib/ostream-file.c
++++ b/src/lib/ostream-file.c
+@@ -333,17 +333,17 @@ static int buffer_flush(struct file_ostream *fstream)
+ static void o_stream_tcp_flush_via_nodelay(struct file_ostream *fstream)
  {
  	if (net_set_tcp_nodelay(fstream->fd, TRUE) < 0) {
- 		if (errno != ENOTSUP && errno != ENOTSOCK &&
+-		if (errno != ENOTSUP && errno != ENOTSOCK &&
 -		    errno != ENOPROTOOPT) {
-+		    errno != ENOPROTOOPT && errno != EINVAL) {
- 			i_error("file_ostream.net_set_tcp_nodelay(%s, TRUE) failed: %m",
- 				o_stream_get_name(&fstream->ostream.ostream));
- 		}
+-			i_error("file_ostream.net_set_tcp_nodelay(%s, TRUE) failed: %m",
+-				o_stream_get_name(&fstream->ostream.ostream));
+-		}
++		/* Don't bother logging errors. There are quite a lot of
++		   different errors that need to be ignored, and it differs
++		   between OSes. At least:
++		   Linux: ENOTSUP, ENOTSOCK, ENOPROTOOPT
++		   FreeBSD: EINVAL, ECONNRESET */
+ 		fstream->no_socket_nodelay = TRUE;
+ 	} else if (net_set_tcp_nodelay(fstream->fd, FALSE) < 0) {
+-		/* We already successfully enabled TCP_NODELAY, so we're really
+-		   not expecting any errors here. */
+-		i_error("file_ostream.net_set_tcp_nodelay(%s, FALSE) failed: %m",
+-			o_stream_get_name(&fstream->ostream.ostream));
++		/* We already successfully enabled TCP_NODELAY, so there
++		   shouldn't really be errors. Except ECONNRESET can possibly
++		   still happen between these two calls, so again don't log
++		   errors. */
+ 		fstream->no_socket_nodelay = TRUE;
+ 	}
+ }
