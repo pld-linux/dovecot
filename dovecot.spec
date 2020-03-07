@@ -12,19 +12,20 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	2.3.9.3
+Version:	2.3.10
 Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/2.3/%{name}-%{version}.tar.gz
-# Source0-md5:	fbbf4e94ccfd94d910c1ff14c9330f57
+# Source0-md5:	72afaff08a98c9cf75b4621c8e4f3885
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
 Source4:	%{name}.tmpfiles
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-rpath.patch
+Patch2:		%{name}-shebang.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -162,6 +163,7 @@ Pakiet programistyczny do tworzenia wtyczek dla Dovecota.
 %setup -q
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 
 %{__sed} -i 's,/usr/lib/dovecot,%{_libdir}/dovecot,g' doc/example-config/*.conf doc/example-config/conf.d/*.conf
 
@@ -305,6 +307,7 @@ fi
 %doc AUTHORS COPYING ChangeLog NEWS README TODO doc/*.txt doc/*.c*f doc/wiki/*.txt
 %attr(755,root,root) %{_bindir}/doveadm
 %attr(755,root,root) %{_bindir}/doveconf
+%attr(755,root,root) %{_bindir}/dovecot-sysreport
 %attr(755,root,root) %{_bindir}/dsync
 %attr(755,root,root) %{_sbindir}/%{name}
 %attr(751,root,root) %dir %{_sysconfdir}/%{name}
