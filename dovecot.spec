@@ -12,13 +12,13 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	2.3.11.3
-Release:	2
+Version:	2.3.13
+Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/2.3/%{name}-%{version}.tar.gz
-# Source0-md5:	f06f2272fad04e7b0207f8d00a291f66
+# Source0-md5:	f512bf1a4dac9ac994fddfb6bc5068ff
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
@@ -26,7 +26,6 @@ Source4:	%{name}.tmpfiles
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-rpath.patch
 Patch2:		%{name}-shebang.patch
-Patch3:		tests.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -165,7 +164,6 @@ Pakiet programistyczny do tworzenia wtyczek dla Dovecota.
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
-%patch3 -p1
 
 %{__sed} -i 's,/usr/lib/dovecot,%{_libdir}/dovecot,g' doc/example-config/*.conf doc/example-config/conf.d/*.conf
 
@@ -300,7 +298,7 @@ if [ "$i" -eq 1 ]; then
 	echo "Please verify contents of %{_sysconfdir}/%{name}/* files."
 fi
 
-%triggerpostun -- %{name} < 1:2.2.4-2
+# < 1:2.2.4-2
 %systemd_trigger dovecot.service dovecot.socket
 
 %files
