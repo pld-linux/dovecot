@@ -55,6 +55,7 @@ BuildRequires:	sed >= 4.0
 %{?with_sqlite:BuildRequires:	sqlite3-devel}
 BuildRequires:	xz-devel
 BuildRequires:	zlib-devel
+BuildRequires:	zstd-devel
 Requires(post,preun):	/sbin/chkconfig
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
@@ -197,6 +198,7 @@ touch config.rpath
 	--with-bzlib \
 	--with-libcap \
 	--with-ssl=openssl \
+	--with-zstd \
 %ifarch x32
 	--without-libunwind \
 %endif
