@@ -12,13 +12,13 @@
 Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
-Version:	2.3.13
+Version:	2.3.14
 Release:	1
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
 Source0:	http://dovecot.org/releases/2.3/%{name}-%{version}.tar.gz
-# Source0-md5:	f512bf1a4dac9ac994fddfb6bc5068ff
+# Source0-md5:	2f03532cec3280ae45a101a7a55ccef5
 Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
@@ -49,6 +49,7 @@ BuildRequires:	lz4-devel
 BuildRequires:	openssl-devel >= 0.9.7d
 BuildRequires:	pam-devel
 BuildRequires:	pkgconfig
+BuildRequires:	pkgconfig(lua) >= 5.1
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 BuildRequires:	rpmbuild(macros) >= 1.647
 BuildRequires:	sed >= 4.0
@@ -398,8 +399,10 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so.0.0.0
 %{?with_ldap:%attr(755,root,root) %{_libdir}/%{name}/libdovecot-ldap.so.0.0.0}
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so.0.0.0
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-lua.so.0.0.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so.0.0.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so.0.0.0
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage-lua.so.0.0.0
 # Note: we are in %{_libdir}/dovecot, ldconfig does not look into this
 # directory. This is why the following files are not %ghost
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot.so.0
@@ -409,8 +412,10 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so.0
 %{?with_ldap:%attr(755,root,root) %{_libdir}/%{name}/libdovecot-ldap.so.0}
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so.0
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-lua.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so.0
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so.0
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage-lua.so.0
 
 %files devel
 %defattr(644,root,root,755)
@@ -421,8 +426,10 @@ fi
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-lda.so
 %{?with_ldap:%attr(755,root,root) %{_libdir}/%{name}/libdovecot-ldap.so}
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-login.so
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-lua.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-sql.so
 %attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage.so
+%attr(755,root,root) %{_libdir}/%{name}/libdovecot-storage-lua.so
 %{_libdir}/%{name}/%{name}-config
 %{_includedir}/%{name}
 %{_aclocaldir}/dovecot.m4
