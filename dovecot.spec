@@ -181,7 +181,7 @@ touch config.rpath
 %{__autoheader}
 %{__automake}
 %configure \
-	ac_cv_prog_VALGRIND=no \
+	ac_cv_path_VALGRIND=reject \
 	CPPFLAGS="%{rpmcppflags} -I/usr/include/libstemmer -D_LINUX_QUOTA_VERSION=2" \
 	--disable-static \
 	--enable-hardening \
