@@ -13,7 +13,7 @@ Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
 Version:	2.3.21.1
-Release:	3
+Release:	4
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
@@ -71,6 +71,7 @@ Requires(pre):	/usr/sbin/useradd
 Requires:	%{name}-libs = %{epoch}:%{version}-%{release}
 Requires:	pam >= 0.79.0
 Provides:	group(dovecot)
+Provides:	group(dovenull)
 Provides:	imapdaemon
 Provides:	pop3daemon
 Provides:	user(dovecot)
