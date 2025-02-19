@@ -1,0 +1,49 @@
+; export fields from lua back to dovecot also on userdb/passdb failures
+; Patch by Przemysław Plewa
+diff -urNp dovecot-2.3.21.1.org/src/auth/db-lua.c dovecot-2.3.21.1/src/auth/db-lua.c
+--- dovecot-2.3.21.1.org/src/auth/db-lua.c	2024-08-13 12:37:50.000000000 +0200
++++ dovecot-2.3.21.1/src/auth/db-lua.c	2025-02-19 10:28:54.277679024 +0100
+@@ -537,14 +537,13 @@ auth_lua_export_userdb_table(lua_State *
+ {
+ 	enum userdb_result ret = lua_tointeger(L, -2);
+ 
++        auth_lua_export_table(L, req, NULL, NULL);
++
+ 	if (ret != USERDB_RESULT_OK) {
+-		lua_pop(L, 2);
+-		lua_gc(L, LUA_GCCOLLECT, 0);
+ 		*error_r = "userdb failed";
+ 		return ret;
+ 	}
+ 
+-	auth_lua_export_table(L, req, NULL, NULL);
+ 	return USERDB_RESULT_OK;
+ }
+ 
+@@ -555,14 +554,13 @@ auth_lua_export_passdb_table(lua_State *
+ {
+ 	enum passdb_result ret = lua_tointeger(L, -2);
+ 
++	auth_lua_export_table(L, req, scheme_r, password_r);
++
+ 	if (ret != PASSDB_RESULT_OK) {
+-		lua_pop(L, 2);
+-		lua_gc(L, LUA_GCCOLLECT, 0);
+ 		*error_r = "passb failed";
+ 		return ret;
+ 	}
+ 
+-	auth_lua_export_table(L, req, scheme_r, password_r);
+ 	return PASSDB_RESULT_OK;
+ }
+ 
+@@ -585,7 +583,8 @@ auth_lua_call_lookup_finish(lua_State *L
+ 
+ 	if (ret != PASSDB_RESULT_OK && ret != PASSDB_RESULT_NEXT) {
+ 		*error_r = str;
+-	} else {
++	}
++	if (str != NULL) {
+ 		auth_lua_export_fields(req, str, scheme_r, password_r);
+ 	}
+ 
