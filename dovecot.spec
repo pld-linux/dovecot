@@ -30,6 +30,7 @@ Patch3:         proc-status.patch
 Patch4:		openssl3.patch
 Patch5:		icu76.patch
 Patch6:		dovecot-lua-export-on-auth-fail.patch
+Patch7:		tests.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -175,6 +176,7 @@ Pakiet programistyczny do tworzenia wtyczek dla Dovecota.
 %patch -P4 -p1
 %patch -P5 -p1
 %patch -P6 -p1
+%patch -P7 -p1
 
 %{__sed} -i 's,/usr/lib/dovecot,%{_libdir}/dovecot,g' doc/example-config/*.conf doc/example-config/conf.d/*.conf
 
