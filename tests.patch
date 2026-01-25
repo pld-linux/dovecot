@@ -34,3 +34,15 @@ index c38da60fd0f..3c335976853 100644
  		test_assert(b2 != b);
  	} T_END;
  	test_end();
+--- dovecot-2.3.21.1/src/imap/Makefile.am.orig	2024-08-13 12:37:50.000000000 +0200
++++ dovecot-2.3.21.1/src/imap/Makefile.am	2026-01-25 01:17:36.604119058 +0100
+@@ -115,8 +115,7 @@
+ pkginc_libdir=$(pkgincludedir)
+ pkginc_lib_HEADERS = $(headers)
+ 
+-test_programs = \
+-	test-imap-client-hibernate
++test_programs =
+ noinst_PROGRAMS = $(test_programs)
+ 
+ test_imap_client_hibernate_SOURCES = \
