@@ -23,6 +23,8 @@ Source1:	%{name}.pamd
 Source2:	%{name}.init
 Source3:	%{name}.sysconfig
 Source4:	%{name}.tmpfiles
+# unreleased fixes from upstream's release-2.3 branch (dead since 2024-12-31)
+Patch100:	%{name}-git.patch
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-rpath.patch
 Patch2:		%{name}-shebang.patch
@@ -179,6 +181,7 @@ Pakiet programistyczny do tworzenia wtyczek dla Dovecota.
 
 %prep
 %setup -q
+%patch -P100 -p1
 %patch -P0 -p1
 %patch -P1 -p1
 %patch -P2 -p1

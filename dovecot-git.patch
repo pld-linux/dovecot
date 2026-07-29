@@ -1,0 +1,604 @@
+From 1fd4fcc00335a0560e5686e17aceece7933f214d Mon Sep 17 00:00:00 2001
+From: Timo Sirainen <timo.sirainen@open-xchange.com>
+Date: Fri, 6 Sep 2024 14:42:55 +0300
+Subject: [PATCH] imap-login: Don't forward x-multiplex ID parameter when
+ proxying
+
+If a connecting v2.4 proxy sends this parameter, it should be ignored rather
+than forwarded to the next hop, which again might be v2.4. This would end
+up enabling multiplex iostreams, even though this v2.3 proxy doesn't
+understand it.
+---
+ src/imap-login/imap-login-cmd-id.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/src/imap-login/imap-login-cmd-id.c b/src/imap-login/imap-login-cmd-id.c
+index a1c62946515..7db4c9d7d3d 100644
+--- a/src/imap-login/imap-login-cmd-id.c
++++ b/src/imap-login/imap-login-cmd-id.c
+@@ -70,6 +70,14 @@ cmd_id_x_forward_(struct imap_client *client,
+ 	client_add_forward_field(&client->common, key+10, value);
+ }
+ 
++static void
++cmd_id_x_multiplex(struct imap_client *client ATTR_UNUSED,
++		   const char *key ATTR_UNUSED, const char *value ATTR_UNUSED)
++{
++	/* ignore - registered here only so that it's not automatically
++	   forwarded by imap_id_retain=yes handling */
++}
++
+ static const struct imap_id_param_handler imap_login_id_params[] = {
+ 	{ "x-originating-ip", FALSE, cmd_id_x_originating_ip },
+ 	{ "x-originating-port", FALSE, cmd_id_x_originating_port },
+@@ -79,6 +87,7 @@ static const struct imap_id_param_handler imap_login_id_params[] = {
+ 	{ "x-session-id", FALSE, cmd_id_x_session_id },
+ 	{ "x-session-ext-id", FALSE, cmd_id_x_session_id },
+ 	{ "x-forward-", TRUE, cmd_id_x_forward_ },
++	{ "x-multiplex", FALSE, cmd_id_x_multiplex },
+ 
+ 	{ NULL, FALSE, NULL }
+ };
+
+From 9a00369c8a09ccb2799dd6b3a4767947f5ace55a Mon Sep 17 00:00:00 2001
+From: Timo Sirainen <timo.sirainen@open-xchange.com>
+Date: Mon, 14 Oct 2024 12:53:33 +0300
+Subject: [PATCH] imap: Fix potential hang/crash when unhibernating
+
+This fixes two potential bugs:
+
+a) Unhibernation is triggered by new mailbox changes. While sending these
+to IMAP client, Dovecot notices that the client has disconnected. The
+process will stay IDLEing for 30 minutes until it gets disconnected with
+"Disconnected: Inactivity - no input for 1800 secs"
+
+b) Unhibernation is triggered by DONE command with some further pipelined
+commands. During unhibernation new mailbox changes are noticed, and
+again IMAP client is found to be disconnected while sending the changes.
+This causes a segfault.
+---
+ src/imap/cmd-idle.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/imap/cmd-idle.c b/src/imap/cmd-idle.c
+index 2b31dc714e1..e1f492779aa 100644
+--- a/src/imap/cmd-idle.c
++++ b/src/imap/cmd-idle.c
+@@ -302,7 +302,9 @@ bool cmd_idle(struct client_command_context *cmd)
+ 
+ 	/* check immediately if there are changes. if they came before we
+ 	   added mailbox-notifier, we wouldn't see them otherwise. */
+-	if (client->mailbox != NULL)
+-		idle_sync_now(client->mailbox, ctx);
++	if (client->mailbox != NULL) {
++		if (idle_sync_now(client->mailbox, ctx))
++			return TRUE;
++	}
+ 	return idle_client_handle_input(ctx, FALSE);
+ }
+
+From 30b7e3cb5c7037a5a2d31096a75696d70c9c9f94 Mon Sep 17 00:00:00 2001
+From: Markus Valentin <markus.valentin@open-xchange.com>
+Date: Tue, 3 Dec 2024 14:30:27 +0100
+Subject: [PATCH] lib: istream-seekable - Remove unused define BUF_INITIAL_SIZE
+
+---
+ src/lib/istream-seekable.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/src/lib/istream-seekable.c b/src/lib/istream-seekable.c
+index 5bc19ada8eb..76c0c2f4695 100644
+--- a/src/lib/istream-seekable.c
++++ b/src/lib/istream-seekable.c
+@@ -13,8 +13,6 @@
+ 
+ #include <unistd.h>
+ 
+-#define BUF_INITIAL_SIZE (1024*32)
+-
+ struct seekable_istream {
+ 	struct istream_private istream;
+ 
+
+From 97791e1ea53fdff64bafef6ff572b237b41dbe3b Mon Sep 17 00:00:00 2001
+From: Timo Sirainen <timo.sirainen@open-xchange.com>
+Date: Mon, 3 Jun 2024 22:46:51 +0300
+Subject: [PATCH] doveadm save: Fix potential assert-crash if saving failed
+
+The input stream may not have been fully read at failure time.
+
+Fixes:
+Panic: file doveadm-mail-save.c: line 91 (cmd_save_to_mailbox): assertion failed: (input->eof)
+---
+ src/doveadm/doveadm-mail-save.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/doveadm/doveadm-mail-save.c b/src/doveadm/doveadm-mail-save.c
+index d8312c8227b..dff2abe0718 100644
+--- a/src/doveadm/doveadm-mail-save.c
++++ b/src/doveadm/doveadm-mail-save.c
+@@ -77,7 +77,7 @@ cmd_save_to_mailbox(struct save_cmd_context *ctx, struct mailbox *box,
+ 		mailbox_save_cancel(&save_ctx);
+ 	if (trans != NULL)
+ 		mailbox_transaction_rollback(&trans);
+-	i_assert(input->eof);
++	i_assert(ret < 0 || input->eof);
+ 	return ret < 0 ? -1 : 0;
+ }
+ 
+
+From 53c7113720fbf4768f6413fdfbb2e55bc778716d Mon Sep 17 00:00:00 2001
+From: Timo Sirainen <timo.sirainen@open-xchange.com>
+Date: Mon, 3 Jun 2024 23:05:22 +0300
+Subject: [PATCH] lib: istream-seekable - Fix moving stream to memory on
+ write() failure
+
+Fixes:
+Panic: file istream-seekable.c: line 238 (read_from_buffer): assertion failed: (*ret_r > 0)
+---
+ src/lib/istream-seekable.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/lib/istream-seekable.c b/src/lib/istream-seekable.c
+index 76c0c2f4695..9c7d2940527 100644
+--- a/src/lib/istream-seekable.c
++++ b/src/lib/istream-seekable.c
+@@ -192,6 +192,7 @@ static bool read_from_buffer(struct seekable_istream *sstream, ssize_t *ret_r)
+ 		/* This could be the first read() or we could have already
+ 		   seeked backwards. */
+ 		i_assert(stream->pos == 0 && stream->skip == 0);
++		i_assert(sstream->buffer_peak >= stream->istream.v_offset);
+ 		stream->skip = stream->istream.v_offset;
+ 		stream->pos = sstream->buffer_peak;
+ 		size = stream->pos - stream->skip;
+@@ -259,6 +260,7 @@ static int i_stream_seekable_write_failed(struct seekable_istream *sstream)
+ 				    sstream->temp_path);
+ 		return -1;
+ 	}
++	sstream->buffer_peak = sstream->write_peak;
+ 	i_stream_destroy(&sstream->fd_input);
+ 	sstream->fd = -1; /* autoclosed by fd_input */
+ 
+
+From 6afc5b06a543c936aa428d758d7f8bad3f13fb66 Mon Sep 17 00:00:00 2001
+From: Timo Sirainen <timo.sirainen@open-xchange.com>
+Date: Mon, 3 Jun 2024 23:23:40 +0300
+Subject: [PATCH] lib: istream-seekable - Assert that write() won't return 0
+
+---
+ src/lib/istream-seekable.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/lib/istream-seekable.c b/src/lib/istream-seekable.c
+index 9c7d2940527..b753c919912 100644
+--- a/src/lib/istream-seekable.c
++++ b/src/lib/istream-seekable.c
+@@ -306,9 +306,11 @@ static ssize_t i_stream_seekable_read(struct istream_private *stream)
+ 
+ 		/* save to our file */
+ 		data = i_stream_get_data(sstream->cur_input, &size);
++		i_assert(size > 0);
+ 		ret = write(sstream->fd, data, size);
+-		if (ret <= 0) {
+-			if (ret < 0 && !ENOSPACE(errno)) {
++		i_assert(ret != 0);
++		if (ret < 0) {
++			if (!ENOSPACE(errno)) {
+ 				i_error("istream-seekable: write_full(%s) failed: %m",
+ 					sstream->temp_path);
+ 			}
+
+From bc94afb46ad201af6c4a0e145ac07f8730973b01 Mon Sep 17 00:00:00 2001
+From: Timo Sirainen <timo.sirainen@open-xchange.com>
+Date: Mon, 3 Jun 2024 23:28:23 +0300
+Subject: [PATCH] lib: istream-seekable - Improve logging after write() errors
+
+Also don't silently handle out of disk space errors - log a warning instead.
+---
+ src/lib/istream-seekable.c      | 16 ++++++++++------
+ src/lib/test-istream-seekable.c |  4 ++--
+ 2 files changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/src/lib/istream-seekable.c b/src/lib/istream-seekable.c
+index b753c919912..786eae3098d 100644
+--- a/src/lib/istream-seekable.c
++++ b/src/lib/istream-seekable.c
+@@ -243,6 +243,7 @@ static int i_stream_seekable_write_failed(struct seekable_istream *sstream)
+ 	struct istream_private *stream = &sstream->istream;
+ 	void *data;
+ 	size_t old_pos = stream->pos;
++	int write_errno = errno;
+ 
+ 	i_assert(sstream->fd != -1);
+ 	i_assert(stream->skip == 0);
+@@ -256,8 +257,8 @@ static int i_stream_seekable_write_failed(struct seekable_istream *sstream)
+ 		sstream->istream.istream.stream_errno = errno;
+ 		sstream->istream.istream.eof = TRUE;
+ 		io_stream_set_error(&sstream->istream.iostream,
+-				    "istream-seekable: read(%s) failed: %m",
+-				    sstream->temp_path);
++				    "istream-seekable: write(%s) failed: %s, and attempt to read() it back failed: %m",
++				    sstream->temp_path, strerror(write_errno));
+ 		return -1;
+ 	}
+ 	sstream->buffer_peak = sstream->write_peak;
+@@ -310,14 +311,17 @@ static ssize_t i_stream_seekable_read(struct istream_private *stream)
+ 		ret = write(sstream->fd, data, size);
+ 		i_assert(ret != 0);
+ 		if (ret < 0) {
+-			if (!ENOSPACE(errno)) {
+-				i_error("istream-seekable: write_full(%s) failed: %m",
+-					sstream->temp_path);
+-			}
++			const char *orig_temp_path = t_strdup(sstream->temp_path);
++			int write_errno = errno;
+ 			if (i_stream_seekable_write_failed(sstream) < 0)
+ 				return -1;
+ 			if (!read_from_buffer(sstream, &ret))
+ 				i_unreached();
++
++			errno = write_errno;
++			i_warning("istream-seekable: write_full(%s) failed: %m - "
++				  "fallback to using only memory",
++				  orig_temp_path);
+ 			return ret;
+ 		}
+ 		i_stream_sync(sstream->fd_input);
+diff --git a/src/lib/test-istream-seekable.c b/src/lib/test-istream-seekable.c
+index 3373f52d648..b1517711180 100644
+--- a/src/lib/test-istream-seekable.c
++++ b/src/lib/test-istream-seekable.c
+@@ -255,9 +255,9 @@ static void test_istream_seekable_failed_writes(void)
+ 	i_close_fd(&fd_callback_fd);
+ 	test_istream_set_size(streams[0], 5);
+ 
+-	test_expect_error_string("istream-seekable: write_full(test-lib.tmp) failed: Bad file descriptor");
+ 	test_assert(i_stream_read(input) == -1);
+-	test_expect_no_more_errors();
++	test_assert(input->stream_errno == EBADF);
++	test_assert_strcmp(i_stream_get_error(input), "istream-seekable: write(test-lib.tmp) failed: Bad file descriptor, and attempt to read() it back failed: Bad file descriptor");
+ 
+ 	test_expect_error_string("file_istream.close((seekable temp-istream for: test seekable)) failed: Bad file descriptor");
+ 	i_stream_unref(&input);
+
+From 7fe2c39271b8e993632fd1b9a3ec95e031360f24 Mon Sep 17 00:00:00 2001
+From: Timo Sirainen <timo.sirainen@open-xchange.com>
+Date: Mon, 3 Jun 2024 23:42:25 +0300
+Subject: [PATCH] lib: istream-seekable - Allow in-memory fallback only for up
+ to 10 MB streams
+
+---
+ src/lib/istream-seekable.c | 37 +++++++++++++++++++++++++++++++------
+ 1 file changed, 31 insertions(+), 6 deletions(-)
+
+diff --git a/src/lib/istream-seekable.c b/src/lib/istream-seekable.c
+index 786eae3098d..cfddd08e37e 100644
+--- a/src/lib/istream-seekable.c
++++ b/src/lib/istream-seekable.c
+@@ -13,11 +13,14 @@
+ 
+ #include <unistd.h>
+ 
++#define MAX_MEMORY_FALLBACK_SIZE (1024*1024*10)
++
+ struct seekable_istream {
+ 	struct istream_private istream;
+ 
+-	char *temp_path;
++	char *temp_path, *write_failed_temp_path;
+ 	uoff_t write_peak;
++	int write_failed_errno;
+ 	uoff_t size;
+ 	size_t buffer_peak;
+ 
+@@ -61,6 +64,7 @@ static void i_stream_seekable_destroy(struct iostream_private *stream)
+ 	if (sstream->free_context)
+ 		i_free(sstream->context);
+ 	i_free(sstream->temp_path);
++	i_free(sstream->write_failed_temp_path);
+ 	i_free(sstream->input);
+ }
+ 
+@@ -248,7 +252,7 @@ static int i_stream_seekable_write_failed(struct seekable_istream *sstream)
+ 	i_assert(sstream->fd != -1);
+ 	i_assert(stream->skip == 0);
+ 
+-	stream->max_buffer_size = SIZE_MAX;
++	stream->max_buffer_size = MAX_MEMORY_FALLBACK_SIZE;
+ 	stream->pos = 0;
+ 	data = i_stream_alloc(stream, sstream->write_peak);
+ 	stream->pos = old_pos;
+@@ -281,6 +285,17 @@ static ssize_t i_stream_seekable_read(struct istream_private *stream)
+ 		if (read_from_buffer(sstream, &ret))
+ 			return ret;
+ 
++		if (sstream->write_failed_errno != 0) {
++			errno = sstream->write_failed_errno;
++			sstream->istream.istream.stream_errno = errno;
++			sstream->istream.istream.eof = TRUE;
++			io_stream_set_error(&sstream->istream.iostream,
++				"istream-seekable: write(%s) failed: %m - "
++				"stream is too large for memory",
++				sstream->write_failed_temp_path);
++			return -1;
++		}
++
+ 		/* copy everything to temp file and use it as the stream */
+ 		if (copy_to_temp_file(sstream) < 0) {
+ 			stream->max_buffer_size = SIZE_MAX;
+@@ -311,17 +326,27 @@ static ssize_t i_stream_seekable_read(struct istream_private *stream)
+ 		ret = write(sstream->fd, data, size);
+ 		i_assert(ret != 0);
+ 		if (ret < 0) {
+-			const char *orig_temp_path = t_strdup(sstream->temp_path);
+-			int write_errno = errno;
++			if (sstream->write_peak + size >= MAX_MEMORY_FALLBACK_SIZE) {
++				sstream->istream.istream.stream_errno = errno;
++				sstream->istream.istream.eof = TRUE;
++				io_stream_set_error(&sstream->istream.iostream,
++					"istream-seekable: write(%s) failed: %m",
++					sstream->temp_path);
++				return -1;
++			}
++
++			sstream->write_failed_errno = errno;
++			sstream->write_failed_temp_path =
++				i_strdup(sstream->temp_path);
+ 			if (i_stream_seekable_write_failed(sstream) < 0)
+ 				return -1;
+ 			if (!read_from_buffer(sstream, &ret))
+ 				i_unreached();
+ 
+-			errno = write_errno;
++			errno = sstream->write_failed_errno;
+ 			i_warning("istream-seekable: write_full(%s) failed: %m - "
+ 				  "fallback to using only memory",
+-				  orig_temp_path);
++				  sstream->write_failed_temp_path);
+ 			return ret;
+ 		}
+ 		i_stream_sync(sstream->fd_input);
+
+From 13061d620c1dd6952bbb7b0d4a7ae4f5e665b8d9 Mon Sep 17 00:00:00 2001
+From: Timo Sirainen <timo.sirainen@open-xchange.com>
+Date: Mon, 9 Sep 2024 18:45:59 +0300
+Subject: [PATCH] fts: Don't ignore parent mail_precache() failure
+
+---
+ src/plugins/fts/fts-storage.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/plugins/fts/fts-storage.c b/src/plugins/fts/fts-storage.c
+index 101d52a21dd..6d78ff20e7c 100644
+--- a/src/plugins/fts/fts-storage.c
++++ b/src/plugins/fts/fts-storage.c
+@@ -558,7 +558,8 @@ static int fts_mail_precache(struct mail *_mail)
+ 	struct fts_transaction_context *ft = FTS_CONTEXT_REQUIRE(_mail->transaction);
+ 	int ret = 0;
+ 
+-	fmail->module_ctx.super.precache(_mail);
++	if (fmail->module_ctx.super.precache(_mail) < 0)
++		return -1;
+ 	if (fmail->virtual_mail) {
+ 		if (ft->highest_virtual_uid < _mail->uid)
+ 			ft->highest_virtual_uid = _mail->uid;
+
+From 4eb23fdf2d285d710dc1f70b5158dbc6ffef48aa Mon Sep 17 00:00:00 2001
+From: Timo Sirainen <timo.sirainen@open-xchange.com>
+Date: Mon, 9 Sep 2024 18:46:56 +0300
+Subject: [PATCH] virtual: Fix copying storage error on mail_precache() failure
+
+---
+ src/plugins/virtual/virtual-mail.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/plugins/virtual/virtual-mail.c b/src/plugins/virtual/virtual-mail.c
+index fd8303fc587..a8cc80dce30 100644
+--- a/src/plugins/virtual/virtual-mail.c
++++ b/src/plugins/virtual/virtual-mail.c
+@@ -240,7 +240,11 @@ static int virtual_mail_precache(struct mail *mail)
+ 	if (backend_mail_get(vmail, &backend_mail) < 0)
+ 		return -1;
+ 	p = (struct mail_private *)backend_mail;
+-	return p->v.precache(backend_mail);
++	if (p->v.precache(backend_mail) < 0) {
++		virtual_box_copy_error(mail->box, backend_mail->box);
++		return -1;
++	}
++	return 0;
+ }
+ 
+ static void
+
+From 8223d09707c3dadb2221be8d55bbf2c581e682d2 Mon Sep 17 00:00:00 2001
+From: Aki Tuomi <aki.tuomi@open-xchange.com>
+Date: Mon, 16 Dec 2024 12:53:06 +0200
+Subject: [PATCH] lib-storage: Add local and remote port as variables to
+ mail_log_prefix
+
+---
+ src/lib-storage/mail-storage-service.c | 12 ++++++++++++
+ src/lib-storage/mail-user.c            | 16 ++++++++++++++++
+ 2 files changed, 28 insertions(+)
+
+diff --git a/src/lib-storage/mail-storage-service.c b/src/lib-storage/mail-storage-service.c
+index dd31cbca2d5..22b77f5ff19 100644
+--- a/src/lib-storage/mail-storage-service.c
++++ b/src/lib-storage/mail-storage-service.c
+@@ -421,6 +421,14 @@ get_var_expand_table(struct master_service *service,
+ 		auth_domain = i_strchr_to_next(user->auth_user, '@');
+ 	}
+ 
++	const char *local_port = "";
++	const char *remote_port = "";
++
++	if (input->local_port != 0)
++		local_port = dec2str(input->local_port);
++	if (input->remote_port != 0)
++		remote_port = dec2str(input->remote_port);
++
+ 	const struct var_expand_table stack_tab[] = {
+ 		{ 'u', input->username, "user" },
+ 		{ 'n', username, "username" },
+@@ -428,6 +436,8 @@ get_var_expand_table(struct master_service *service,
+ 		{ 's', service->name, "service" },
+ 		{ 'l', net_ip2addr(&input->local_ip), "lip" },
+ 		{ 'r', net_ip2addr(&input->remote_ip), "rip" },
++		{ 'a', local_port, "lport" },
++		{ 'b', remote_port, "rport" },
+ 		{ 'p', my_pid, "pid" },
+ 		{ 'i', uid, "uid" },
+ 		{ '\0', gid, "gid" },
+@@ -438,6 +448,8 @@ get_var_expand_table(struct master_service *service,
+ 		/* aliases: */
+ 		{ '\0', net_ip2addr(&input->local_ip), "local_ip" },
+ 		{ '\0', net_ip2addr(&input->remote_ip), "remote_ip" },
++		{ '\0', local_port, "local_port" },
++		{ '\0', remote_port," remote_port" },
+ 		{ '\0', NULL, NULL }
+ 	};
+ 	struct var_expand_table *tab;
+diff --git a/src/lib-storage/mail-user.c b/src/lib-storage/mail-user.c
+index 1382e7161a5..2c26996b9a5 100644
+--- a/src/lib-storage/mail-user.c
++++ b/src/lib-storage/mail-user.c
+@@ -340,6 +340,18 @@ mail_user_var_expand_table(struct mail_user *user)
+ 		auth_domain = i_strchr_to_next(user->auth_user, '@');
+ 	}
+ 
++	const char *local_port = "";
++	const char *remote_port = "";
++
++	if (user->conn.local_port != 0) {
++		local_port = p_strdup_printf(user->pool, "%u",
++					     user->conn.local_port);
++	}
++	if (user->conn.remote_port != 0) {
++		remote_port = p_strdup_printf(user->pool, "%u",
++					      user->conn.remote_port);
++	}
++
+ 	const struct var_expand_table stack_tab[] = {
+ 		{ 'u', user->username, "user" },
+ 		{ 'n', username, "username" },
+@@ -348,6 +360,8 @@ mail_user_var_expand_table(struct mail_user *user)
+ 		{ 'h', user->_home /* don't look it up unless we need it */, "home" },
+ 		{ 'l', local_ip, "lip" },
+ 		{ 'r', remote_ip, "rip" },
++		{ 'a', local_port, "lport" },
++		{ 'b', remote_port, "rport" },
+ 		{ 'p', my_pid, "pid" },
+ 		{ 'i', p_strdup(user->pool, dec2str(user->uid)), "uid" },
+ 		{ '\0', p_strdup(user->pool, dec2str(user->gid)), "gid" },
+@@ -359,6 +373,8 @@ mail_user_var_expand_table(struct mail_user *user)
+ 		/* aliases: */
+ 		{ '\0', local_ip, "local_ip" },
+ 		{ '\0', remote_ip, "remote_ip" },
++		{ '\0', local_port, "local_port" },
++		{ '\0', remote_port, "remote_port" },
+ 		/* NOTE: keep this synced with imap-hibernate's
+ 		   imap_client_var_expand_table() */
+ 		{ '\0', NULL, NULL }
+
+From c8a009249d033834196c46ef30ef95865ef34482 Mon Sep 17 00:00:00 2001
+From: Aki Tuomi <aki.tuomi@open-xchange.com>
+Date: Mon, 16 Dec 2024 12:53:23 +0200
+Subject: [PATCH] imap-hibernate: Add local and remote port as variables to
+ mail_log_prefix
+
+---
+ src/imap-hibernate/imap-client.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/src/imap-hibernate/imap-client.c b/src/imap-hibernate/imap-client.c
+index fa5eddef308..5e72c50ee5e 100644
+--- a/src/imap-hibernate/imap-client.c
++++ b/src/imap-hibernate/imap-client.c
+@@ -511,6 +511,15 @@ imap_client_get_var_expand_table(struct imap_client *client)
+ 		auth_domain = i_strchr_to_next(auth_user, '@');
+ 	}
+ 
++
++	const char *local_port = "";
++	const char *remote_port = "";
++
++	if (client->state.local_port != 0)
++		local_port = dec2str(client->state.local_port);
++	if (client->state.remote_port != 0)
++		remote_port = dec2str(client->state.remote_port);
++
+ 	const struct var_expand_table stack_tab[] = {
+ 		{ 'u', client->state.username, "user" },
+ 		{ 'n', username, "username" },
+@@ -519,6 +528,8 @@ imap_client_get_var_expand_table(struct imap_client *client)
+ 		{ 'h', NULL /* we shouldn't need this */, "home" },
+ 		{ 'l', local_ip, "lip" },
+ 		{ 'r', remote_ip, "rip" },
++		{ 'a', local_port, "lport" },
++		{ 'a', remote_port, "rport" },
+ 		{ 'p', my_pid, "pid" },
+ 		{ 'i', dec2str(client->state.uid), "uid" },
+ 		{ '\0', dec2str(client->state.gid), "gid" },
+@@ -529,6 +540,8 @@ imap_client_get_var_expand_table(struct imap_client *client)
+ 		/* aliases: */
+ 		{ '\0', local_ip, "local_ip" },
+ 		{ '\0', remote_ip, "remote_ip" },
++		{ '\0', local_port, "local_port" },
++		{ '\0', remote_port, "remote_port" },
+ 		/* NOTE: keep this synced with lib-storage's
+ 		   mail_user_var_expand_table() */
+ 		{ '\0', NULL, NULL }
+
+From d3a097075afb7b5d8955978ed4a2ae99add11f88 Mon Sep 17 00:00:00 2001
+From: "Kirill A. Korinsky" <kirill@korins.ky>
+Date: Wed, 25 Sep 2024 18:30:52 +0200
+Subject: [PATCH] replicator: fixed infinity loop on sync replication
+
+Before this fix, replicator adds the same lookup into callbacks over and
+over, until it reaches out of memory, and crashes.
+
+This regression was introduced 447e086422f1ab7cc16833583ed70a4af7a84bc5
+with initial implementation of replicator.
+---
+ src/replication/replicator/replicator-queue.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/replication/replicator/replicator-queue.c b/src/replication/replicator/replicator-queue.c
+index 31f296af68b..adc3cc9305c 100644
+--- a/src/replication/replicator/replicator-queue.c
++++ b/src/replication/replicator/replicator-queue.c
+@@ -333,6 +333,7 @@ replicator_queue_handle_sync_lookups(struct replicator_queue *queue,
+ 		} else {
+ 			array_push_back(&callbacks, &lookups[i]);
+ 			array_delete(&queue->sync_lookups, i, 1);
++			count--;
+ 		}
+ 	}
+ 
+
+From efdceaab8aa8c2443264b5cc2239e19c72904227 Mon Sep 17 00:00:00 2001
+From: Timo Sirainen <timo.sirainen@open-xchange.com>
+Date: Wed, 20 Nov 2024 15:16:00 +0200
+Subject: [PATCH] mdbox: Fix crash if resync fails because of an early failure
+
+This mainly happened if dovecot.map.index.log was locked and resync timed
+out waiting for it.
+---
+ src/lib-storage/index/dbox-multi/mdbox-map.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/lib-storage/index/dbox-multi/mdbox-map.c b/src/lib-storage/index/dbox-multi/mdbox-map.c
+index c5d1e5955c3..f2ba8677964 100644
+--- a/src/lib-storage/index/dbox-multi/mdbox-map.c
++++ b/src/lib-storage/index/dbox-multi/mdbox-map.c
+@@ -538,7 +538,8 @@ void mdbox_map_atomic_set_success(struct mdbox_map_atomic_context *atomic)
+ 
+ void mdbox_map_atomic_unset_fscked(struct mdbox_map_atomic_context *atomic)
+ {
+-	mail_index_unset_fscked(atomic->sync_trans);
++	if (atomic->sync_trans != NULL)
++		mail_index_unset_fscked(atomic->sync_trans);
+ }
+ 
+ int mdbox_map_atomic_finish(struct mdbox_map_atomic_context **_atomic)
+
