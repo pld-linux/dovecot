@@ -13,7 +13,7 @@ Summary:	IMAP and POP3 server written with security primarily in mind
 Summary(pl.UTF-8):	Serwer IMAP i POP3 pisany głównie z myślą o bezpieczeństwie
 Name:		dovecot
 Version:	2.3.21.1
-Release:	8
+Release:	9
 Epoch:		1
 License:	MIT (libraries), LGPL v2.1 (the rest)
 Group:		Networking/Daemons
@@ -31,6 +31,16 @@ Patch4:		openssl3.patch
 Patch5:		icu76.patch
 Patch6:		dovecot-lua-export-on-auth-fail.patch
 Patch7:		tests.patch
+# 2.3 is EOL upstream; security fixes backported from 2.4.x via Debian/Ubuntu
+Patch8:		CVE-2025-59031.patch
+Patch9:		CVE-2026-0394.patch
+Patch10:	CVE-2026-27855.patch
+Patch11:	CVE-2026-27856.patch
+Patch12:	CVE-2026-27857.patch
+Patch13:	CVE-2026-27859.patch
+Patch14:	CVE-2026-33603.patch
+Patch15:	CVE-2026-40020.patch
+Patch16:	CVE-2026-42006.patch
 URL:		http://dovecot.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -177,6 +187,15 @@ Pakiet programistyczny do tworzenia wtyczek dla Dovecota.
 %patch -P5 -p1
 %patch -P6 -p1
 %patch -P7 -p1
+%patch -P8 -p1
+%patch -P9 -p1
+%patch -P10 -p1
+%patch -P11 -p1
+%patch -P12 -p1
+%patch -P13 -p1
+%patch -P14 -p1
+%patch -P15 -p1
+%patch -P16 -p1
 
 %{__sed} -i 's,/usr/lib/dovecot,%{_libdir}/dovecot,g' doc/example-config/*.conf doc/example-config/conf.d/*.conf
 
@@ -342,7 +361,6 @@ fi
 %attr(755,root,root) %{_libexecdir}/%{name}/auth
 %attr(755,root,root) %{_libexecdir}/%{name}/checkpassword-reply
 %attr(755,root,root) %{_libexecdir}/%{name}/config
-%attr(755,root,root) %{_libexecdir}/%{name}/decode2text.sh
 %attr(755,root,root) %{_libexecdir}/%{name}/deliver
 %attr(755,root,root) %{_libexecdir}/%{name}/dict
 %attr(755,root,root) %{_libexecdir}/%{name}/director
